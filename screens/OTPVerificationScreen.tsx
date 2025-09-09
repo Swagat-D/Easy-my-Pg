@@ -8,16 +8,24 @@ import {
   TouchableOpacity,
   Dimensions 
 } from 'react-native';
+import RoleSelectionScreen from './RoleSelectionScreen';
 
 const { width: screenWidth } = Dimensions.get('window');
 
 interface OTPVerificationScreenProps {
   phoneNumber: string;
   onEditNumber?: () => void;
+  onOTPVerified?:()=> void;
 }
 
-export default function OTPVerificationScreen({ phoneNumber, onEditNumber }: OTPVerificationScreenProps) {
+export default function OTPVerificationScreen({ phoneNumber, onEditNumber, onOTPVerified }: OTPVerificationScreenProps) {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  React.useEffect(() => {
+    if (otp.join('').length === 6) {
+      import('react-native').then(RN => RN.Keyboard.dismiss());
+    }
+  }, [otp]);
+  const [showRoleSelection, setShowRoleSelection] = useState(false);
   const inputRefs = useRef<(TextInput | null)[]>([]);
 
   const handleOTPChange = (value: string, index: number) => {
@@ -25,7 +33,6 @@ export default function OTPVerificationScreen({ phoneNumber, onEditNumber }: OTP
     newOtp[index] = value;
     setOtp(newOtp);
 
-    // Auto focus next input
     if (value && index < 5) {
       inputRefs.current[index + 1]?.focus();
     }
@@ -38,12 +45,13 @@ export default function OTPVerificationScreen({ phoneNumber, onEditNumber }: OTP
   };
 
   const handleVerifyOTP = () => {
-    const otpString = otp.join('');
-    if (otpString.length === 6) {
-      console.log('Verifying OTP:', otpString);
-      // Handle OTP verification logic
-    }
-  };
+  const otpString = otp.join('');
+  if (otpString.length === 6) {
+    console.log('Verifying OTP:', otpString);
+    
+    setShowRoleSelection(true);
+  }
+};
 
   const handleEditNumber = () => {
     if (onEditNumber) {
@@ -56,16 +64,22 @@ export default function OTPVerificationScreen({ phoneNumber, onEditNumber }: OTP
     setOtp(['', '', '', '', '', '']);
   };
 
+  const handleRoleSelected = (role: string) => {
+    console.log('Selected role:', role);
+  };
+
+  if (showRoleSelection) {
+    return <RoleSelectionScreen onNextStep={handleRoleSelected} />;
+  }
+
   return (
     <View style={styles.container}>
-      {/* Logo */}
       <Image 
         source={require('../assets/logo.png')} 
         style={styles.logo}
         resizeMode="contain"
       />
       
-      {/* Subtitle with India flag */}
       <View style={styles.subtitleContainer}>
         <Text style={styles.subtitleText}>India 1st Renting Super App </Text>
         <Image 
@@ -75,10 +89,8 @@ export default function OTPVerificationScreen({ phoneNumber, onEditNumber }: OTP
         />
       </View>
       
-      {/* Enter OTP text */}
       <Text style={styles.otpTitle}>Enter the OTP sent to</Text>
       
-      {/* Phone number with edit button */}
       <View style={styles.phoneNumberContainer}>
         <Text style={styles.phoneNumberText}>{phoneNumber}</Text>
         <TouchableOpacity onPress={handleEditNumber} style={styles.editButton}>
@@ -90,7 +102,6 @@ export default function OTPVerificationScreen({ phoneNumber, onEditNumber }: OTP
         </TouchableOpacity>
       </View>
       
-      {/* OTP Input Container */}
       <View style={styles.otpInputContainer}>
         {otp.map((digit, index) => (
           <TextInput
@@ -107,7 +118,6 @@ export default function OTPVerificationScreen({ phoneNumber, onEditNumber }: OTP
         ))}
       </View>
       
-      {/* Verify OTP Button */}
       <TouchableOpacity 
         style={[styles.verifyButton, otp.join('').length === 6 && styles.verifyButtonActive]} 
         onPress={handleVerifyOTP}
@@ -118,7 +128,6 @@ export default function OTPVerificationScreen({ phoneNumber, onEditNumber }: OTP
         </Text>
       </TouchableOpacity>
       
-      {/* Didn't receive code and Resend */}
       <View style={styles.resendContainer}>
         <Text style={styles.resendText}>Didn't receive code? </Text>
         <TouchableOpacity onPress={handleResendOTP}>

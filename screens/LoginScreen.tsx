@@ -19,12 +19,17 @@ interface LoginScreenProps {
 export default function LoginScreen({ initialPhoneNumber = '' }: LoginScreenProps) {
   const [phoneNumber, setPhoneNumber] = useState(initialPhoneNumber);
   const [showOTPScreen, setShowOTPScreen] = useState(false);
-
   const handleSendOTP = () => {
-  if (phoneNumber.length === 10) {
-    setShowOTPScreen(true);
-  }
-};
+    if (phoneNumber.length === 10) {
+      setShowOTPScreen(true);
+    }
+  };
+
+  React.useEffect(() => {
+    if (phoneNumber.length === 10) {
+      import('react-native').then(RN => RN.Keyboard.dismiss());
+    }
+  }, [phoneNumber]);
 
   if (showOTPScreen) {
   return <OTPVerificationScreen 
