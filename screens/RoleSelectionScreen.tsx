@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Dimensions 
 } from 'react-native';
+import OnboardingScreen from './OnboardingScreen';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -14,9 +15,18 @@ interface RoleSelectionScreenProps {
   onNextStep?: (selectedRole: string) => void;
 }
 
+interface FormData {
+  propertyName: string;
+  emailAddress: string;
+  password: string;
+  pincode: string;
+  referralCode: string;
+}
+
 export default function RoleSelectionScreen({ onNextStep }: RoleSelectionScreenProps) {
   const [selectedRole, setSelectedRole] = useState<string>('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   const roles = [
     'Property Manager',
@@ -37,8 +47,40 @@ export default function RoleSelectionScreen({ onNextStep }: RoleSelectionScreenP
     if (selectedRole && onNextStep) {
       onNextStep(selectedRole);
       console.log('Selected role:', selectedRole);
+
+      setShowOnboarding(true);
     }
   };
+
+  const handleOnboarded = (formData: FormData) => {
+    console.log('Onboarding completed with data:', formData);
+    console.log('User role:', selectedRole);
+    
+    const completeUserData = {
+      role: selectedRole,
+      ...formData
+    };
+    
+    if (onNextStep) {
+      onNextStep(selectedRole);
+    }
+        console.log('Complete user registration data:', completeUserData);
+    
+    setShowOnboarding(false);
+  };
+
+  const handleBackFromOnboarding = () => {
+    setShowOnboarding(false);
+  };
+
+  if (showOnboarding) {
+    return (
+      <OnboardingScreen 
+        onNextStep={handleOnboarded} 
+        onBack={handleBackFromOnboarding}
+      />
+    );
+  }
 
   return (
     <View style={styles.container}>
