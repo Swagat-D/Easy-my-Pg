@@ -2,11 +2,13 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, Image, Dimensions } from 'react-native';
 import { useEffect, useState } from 'react';
 import * as Font from 'expo-font';
+import LoginScreen from './screens/LoginScreen';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 export default function App() {
   const [fontsLoaded, setFontsLoaded] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
     async function loadFonts() {
@@ -15,19 +17,27 @@ export default function App() {
           'Sansita': require('./assets/fonts/Sansita-Regular.ttf'),
           'Poppins': require('./assets/fonts/Poppins-Regular.ttf'),
           'Poppins-Light': require('./assets/fonts/Poppins-Light.ttf'),
+          'Montserrat': require('./assets/fonts/Montserrat-SemiBold.ttf')
         });
         setFontsLoaded(true);
       } catch (error) {
         console.log('Font loading error:', error);
-        setFontsLoaded(true); // Continue with system fonts
+        setFontsLoaded(true);
       }
     }
     loadFonts();
   }, []);
 
-  if (!fontsLoaded) {
-    return null; 
-  }
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (!fontsLoaded || showSplash) {
+  
 
   return (
     <View style={styles.container}>
@@ -69,6 +79,9 @@ export default function App() {
       </View>
     </View>
   );
+}
+
+  return <LoginScreen />
 }
 
 const styles = StyleSheet.create({
