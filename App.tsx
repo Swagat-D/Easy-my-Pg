@@ -1,9 +1,34 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, Image, Dimensions } from 'react-native';
+import { useEffect, useState } from 'react';
+import * as Font from 'expo-font';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 export default function App() {
+  const [fontsLoaded, setFontsLoaded] = useState(false);
+
+  useEffect(() => {
+    async function loadFonts() {
+      try {
+        await Font.loadAsync({
+          'Sansita': require('./assets/fonts/Sansita-Regular.ttf'),
+          'Poppins': require('./assets/fonts/Poppins-Regular.ttf'),
+          'Poppins-Light': require('./assets/fonts/Poppins-Light.ttf'),
+        });
+        setFontsLoaded(true);
+      } catch (error) {
+        console.log('Font loading error:', error);
+        setFontsLoaded(true); // Continue with system fonts
+      }
+    }
+    loadFonts();
+  }, []);
+
+  if (!fontsLoaded) {
+    return null; 
+  }
+
   return (
     <View style={styles.container}>
       <StatusBar style="dark" />
@@ -31,7 +56,17 @@ export default function App() {
         resizeMode="contain"
       />
       
-      <Text style={styles.footerText}>Made by Owners. ♥ Trusted by Owners.</Text>
+      <View style={styles.footerContainer}>
+        <View style={styles.footerContent}>
+          <Text style={[styles.footerText, { fontSize: 12 }]}>Made by Owners.</Text>
+          <Image 
+            source={require('./assets/Protect.png')} 
+            style={styles.protectIcon}
+            resizeMode="contain"
+          />
+          <Text style={[styles.footerText, { fontSize: 12 }]}>Trusted by Owners.</Text>
+        </View>
+      </View>
     </View>
   );
 }
@@ -51,35 +86,38 @@ const styles = StyleSheet.create({
   },
   appTitle: {
     position: 'absolute',
-    width: 178,
-    height: 33,
+    width: 178, 
+    height: 50,
     top: 347,
-    left: 99,
+    left: 99, 
     fontFamily: 'Sansita',
     fontWeight: '400',
     fontSize: 40,
-    lineHeight: 40, // 100% of font-size
+    lineHeight: 48, 
     letterSpacing: 0,
     color: '#000',
-    textAlign: 'left',
+    textAlign: 'center', 
+    includeFontPadding: false, 
   },
   subtitleContainer: {
     position: 'absolute',
-    width: 214,
-    height: 24,
+    width: 250, 
+    height: 30, 
     top: 394,
-    left: 67,
+    left: 67, 
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   subtitleText: {
-    fontFamily: 'Poppins',
+    fontFamily: 'Poppins-Light',
     fontWeight: '300',
     fontSize: 16,
-    lineHeight: 16, // 100% of font-size
+    lineHeight: 24, 
     letterSpacing: 0,
     color: '#000',
-    textAlign: 'left',
+    textAlign: 'center',
+    includeFontPadding: false,
   },
   flagIcon: {
     width: 20,
@@ -91,16 +129,36 @@ const styles = StyleSheet.create({
     width: 376,
     height: 108,
     top: 634,
-    left: (screenWidth - 376) / 2, // Center horizontally
+    left: (screenWidth - 376) / 2,
   },
   footerText: {
-    position: 'absolute',
-    bottom: 50,
-    width: screenWidth,
-    textAlign: 'center',
     fontFamily: 'Poppins',
-    fontWeight: '400',
-    fontSize: 14,
-    color: '#666',
+    fontWeight: '300',
+    fontSize: 12,
+    lineHeight: 24,
+    color: '#000',
+    includeFontPadding: false,
+    textAlignVertical: 'center',
   },
+  footerContainer: {
+    position: 'absolute',
+    top: 742,
+    left: 69,
+    width: 237,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 0,
+  },
+  footerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+  },
+  protectIcon: {
+    width: 17,
+    height: 17,
+    marginHorizontal: 8,
+  }
 });
