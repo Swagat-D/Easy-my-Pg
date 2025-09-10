@@ -9,16 +9,19 @@ import {
   Dimensions 
 } from 'react-native';
 import OTPVerificationScreen from './OTPVerificationScreen';
+import SignupScreen from './SignUpScreen';
 
 const { width: screenWidth } = Dimensions.get('window');
 
 interface LoginScreenProps {
   initialPhoneNumber?: string;
+  onSignupRedirect?: () => void;
 }
 
-export default function LoginScreen({ initialPhoneNumber = '' }: LoginScreenProps) {
+export default function LoginScreen({ initialPhoneNumber = '', onSignupRedirect }: LoginScreenProps) {
   const [phoneNumber, setPhoneNumber] = useState(initialPhoneNumber);
   const [showOTPScreen, setShowOTPScreen] = useState(false);
+  const [showSignupScreen, setShowSignupScreen] = useState(false);
   const handleSendOTP = () => {
     if (phoneNumber.length === 10) {
       setShowOTPScreen(true);
@@ -31,6 +34,10 @@ export default function LoginScreen({ initialPhoneNumber = '' }: LoginScreenProp
     }
   }, [phoneNumber]);
 
+  if (showSignupScreen) {
+  return <SignupScreen />;
+}
+
   if (showOTPScreen) {
   return <OTPVerificationScreen 
     phoneNumber={phoneNumber} 
@@ -41,6 +48,10 @@ export default function LoginScreen({ initialPhoneNumber = '' }: LoginScreenProp
 const handleClearNumber = () => {
     setPhoneNumber('');
   };
+
+  const handleSignupRedirect = () => {
+  setShowSignupScreen(true);
+};
 
   return (
     <View style={styles.container}>
@@ -113,9 +124,9 @@ const handleClearNumber = () => {
       </View>
       
       <View style={styles.tenantContainer}>
-        <Text style={styles.tenantText}>Are you a tenants </Text>
-        <TouchableOpacity>
-          <Text style={styles.tenantAppText}>Tenants App</Text>
+        <Text style={styles.tenantText}>Don't have an account? </Text>
+        <TouchableOpacity onPress={handleSignupRedirect}>
+          <Text style={styles.tenantAppText}>Sign Up</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -281,7 +292,7 @@ const styles = StyleSheet.create({
   },
   tenantContainer: {
     position: 'absolute',
-    width: 116,
+    width: 160,
     height: 20,
     top: 670,
     left: 100,
@@ -301,5 +312,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 16,
     color: '#FF0000',
+    textDecorationLine: 'underline',
   },
 });

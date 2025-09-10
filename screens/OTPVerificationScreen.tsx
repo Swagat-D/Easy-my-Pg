@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   StyleSheet, 
   Text, 
@@ -6,34 +6,105 @@ import {
   Image, 
   TextInput, 
   TouchableOpacity,
-  Dimensions 
+  Dimensions,
+  Clipboard,
+  Alert 
 } from 'react-native';
 import RoleSelectionScreen from './RoleSelectionScreen';
+import OnboardingScreen from './OnboardingScreen';
 
 const { width: screenWidth } = Dimensions.get('window');
 
 interface OTPVerificationScreenProps {
   phoneNumber: string;
   onEditNumber?: () => void;
-  onOTPVerified?:()=> void;
+  onOTPVerified?: () => void;
+  isFromSignup?: boolean;
+  signupData?: any;
 }
 
-export default function OTPVerificationScreen({ phoneNumber, onEditNumber, onOTPVerified }: OTPVerificationScreenProps) {
+export default function OTPVerificationScreen({ 
+  phoneNumber, 
+  onEditNumber, 
+  onOTPVerified, 
+  isFromSignup = false
+}: OTPVerificationScreenProps) {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
-  React.useEffect(() => {
+  const [isAutoFetching, setIsAutoFetching] = useState(false);
+  const inputRefs = useRef<(TextInput | null)[]>([]);
+  const [showRoleSelection, setShowRoleSelection] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  useEffect(() => {
+    const autoFetchOTP = async () => {
+      try {
+        setIsAutoFetching(true);
+        const clipboardContent = await Clipboard.getString();
+        
+        const otpPattern = /^\d{6}$/;
+        if (otpPattern.test(clipboardContent.trim())) {
+          const otpArray = clipboardContent.trim().split('');
+          setOtp(otpArray);
+          
+           setTimeout(() => {
+            handleVerifyOTP(otpArray);
+          }, 500);
+        }
+      } catch (error) {
+        console.log('Auto-fetch failed:', error);
+      } finally {
+        setIsAutoFetching(false);
+      }
+    };
+
+    const timer = setTimeout(autoFetchOTP, 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
     if (otp.join('').length === 6) {
       import('react-native').then(RN => RN.Keyboard.dismiss());
+      
+      const timer = setTimeout(() => {
+        handleVerifyOTP(otp);
+      }, 1000);
+      
+      return () => clearTimeout(timer);
     }
   }, [otp]);
-  const [showRoleSelection, setShowRoleSelection] = useState(false);
-  const inputRefs = useRef<(TextInput | null)[]>([]);
 
-  const handleOTPChange = (value: string, index: number) => {
+  const handleOTPChange = async (value: string, index: number) => {
+    if (value.length > 1) {
+      const pastedValue = value.replace(/\D/g, ''); 
+      
+      if (pastedValue.length === 6) {
+        const newOtp = pastedValue.split('');
+        setOtp(newOtp);
+        inputRefs.current[5]?.focus(); 
+        return;
+      } else if (pastedValue.length > 1) {
+        const newOtp = [...otp];
+        const remainingSlots = 6 - index;
+        const valuesToFill = Math.min(pastedValue.length, remainingSlots);
+        
+        for (let i = 0; i < valuesToFill; i++) {
+          newOtp[index + i] = pastedValue[i];
+        }
+        
+        setOtp(newOtp);
+        
+        const nextIndex = Math.min(index + valuesToFill, 5);
+        inputRefs.current[nextIndex]?.focus();
+        return;
+      }
+    }
+
+    const digit = value.replace(/\D/g, '');
     const newOtp = [...otp];
-    newOtp[index] = value;
+    newOtp[index] = digit;
     setOtp(newOtp);
 
-    if (value && index < 5) {
+    if (digit && index < 5) {
       inputRefs.current[index + 1]?.focus();
     }
   };
@@ -44,14 +115,47 @@ export default function OTPVerificationScreen({ phoneNumber, onEditNumber, onOTP
     }
   };
 
-  const handleVerifyOTP = () => {
-  const otpString = otp.join('');
-  if (otpString.length === 6) {
-    console.log('Verifying OTP:', otpString);
-    
-    setShowRoleSelection(true);
+  const handleVerifyOTP = (otpArray = otp) => {
+    const otpString = otpArray.join('');
+    if (otpString.length === 6) {
+      if (isFromSignup) {
+        setShowRoleSelection(true);
+      } else {
+        setShowOnboarding(true);
+      }
+    }
+  };
+
+  const handleRoleSelected = (role: string) => {
+    console.log('selected role:', role);
+  };
+
+  const handlePasteFromClipboard = async () => {
+    try {
+      const clipboardContent = await Clipboard.getString();
+      const digits = clipboardContent.replace(/\D/g, ''); 
+      
+      if (digits.length >= 6) {
+        const otpArray = digits.substring(0, 6).split('');
+        setOtp(otpArray);
+        inputRefs.current[5]?.focus();
+        
+        Alert.alert('Success', 'OTP pasted successfully!');
+      } else {
+        Alert.alert('Invalid OTP', 'Clipboard does not contain a valid 6-digit OTP');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to paste from clipboard');
+    }
+  };
+
+  if (showOnboarding) {
+    return <OnboardingScreen />;
   }
-};
+
+  if (showRoleSelection) {
+    return <RoleSelectionScreen onNextStep={handleRoleSelected} />;
+  }
 
   const handleEditNumber = () => {
     if (onEditNumber) {
@@ -62,15 +166,11 @@ export default function OTPVerificationScreen({ phoneNumber, onEditNumber, onOTP
   const handleResendOTP = () => {
     console.log('Resending OTP to:', phoneNumber);
     setOtp(['', '', '', '', '', '']);
+    
+    if (isFromSignup) {
+      console.log('Resending OTP for signup');
+    }
   };
-
-  const handleRoleSelected = (role: string) => {
-    console.log('Selected role:', role);
-  };
-
-  if (showRoleSelection) {
-    return <RoleSelectionScreen onNextStep={handleRoleSelected} />;
-  }
 
   return (
     <View style={styles.container}>
@@ -92,7 +192,7 @@ export default function OTPVerificationScreen({ phoneNumber, onEditNumber, onOTP
       <Text style={styles.otpTitle}>Enter the OTP sent to</Text>
       
       <View style={styles.phoneNumberContainer}>
-        <Text style={styles.phoneNumberText}>{phoneNumber}</Text>
+        <Text style={styles.phoneNumberText}>+91 {phoneNumber}</Text>
         <TouchableOpacity onPress={handleEditNumber} style={styles.editButton}>
           <Image 
             source={require('../assets/Edit.png')} 
@@ -101,6 +201,10 @@ export default function OTPVerificationScreen({ phoneNumber, onEditNumber, onOTP
           />
         </TouchableOpacity>
       </View>
+
+      {isAutoFetching && (
+        <Text style={styles.autoFetchText}>Auto-detecting OTP...</Text>
+      )}
       
       <View style={styles.otpInputContainer}>
         {otp.map((digit, index) => (
@@ -112,15 +216,17 @@ export default function OTPVerificationScreen({ phoneNumber, onEditNumber, onOTP
             onChangeText={(value) => handleOTPChange(value, index)}
             onKeyPress={(e) => handleKeyPress(e, index)}
             keyboardType="numeric"
-            maxLength={1}
+            maxLength={6}
             textAlign="center"
+            autoComplete="sms-otp"
+            textContentType="oneTimeCode"
           />
         ))}
       </View>
       
       <TouchableOpacity 
         style={[styles.verifyButton, otp.join('').length === 6 && styles.verifyButtonActive]} 
-        onPress={handleVerifyOTP}
+        onPress={() => handleVerifyOTP()}
         disabled={otp.join('').length !== 6}
       >
         <Text style={[styles.verifyButtonText, otp.join('').length === 6 && styles.verifyButtonTextActive]}>
@@ -190,10 +296,10 @@ const styles = StyleSheet.create({
   },
   phoneNumberContainer: {
     position: 'absolute',
-    width: 118,
+    width: 140,
     height: 24,
     top: 377,
-    left: 129,
+    left: 117,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -214,6 +320,17 @@ const styles = StyleSheet.create({
   editIcon: {
     width: 16,
     height: 16,
+  },
+  autoFetchText: {
+    position: 'absolute',
+    top: 410,
+    left: 0,
+    right: 0,
+    textAlign: 'center',
+    fontFamily: 'Poppins',
+    fontSize: 12,
+    color: '#FFD700',
+    fontWeight: '500',
   },
   otpInputContainer: {
     position: 'absolute',
