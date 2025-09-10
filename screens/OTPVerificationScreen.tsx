@@ -11,7 +11,7 @@ import {
   Alert 
 } from 'react-native';
 import RoleSelectionScreen from './RoleSelectionScreen';
-import OnboardingScreen from './OnboardingScreen';
+import DashboardScreen from './Dashboard';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -130,27 +130,8 @@ export default function OTPVerificationScreen({
     console.log('selected role:', role);
   };
 
-  const handlePasteFromClipboard = async () => {
-    try {
-      const clipboardContent = await Clipboard.getString();
-      const digits = clipboardContent.replace(/\D/g, ''); 
-      
-      if (digits.length >= 6) {
-        const otpArray = digits.substring(0, 6).split('');
-        setOtp(otpArray);
-        inputRefs.current[5]?.focus();
-        
-        Alert.alert('Success', 'OTP pasted successfully!');
-      } else {
-        Alert.alert('Invalid OTP', 'Clipboard does not contain a valid 6-digit OTP');
-      }
-    } catch (error) {
-      Alert.alert('Error', 'Failed to paste from clipboard');
-    }
-  };
-
   if (showOnboarding) {
-    return <OnboardingScreen />;
+    return <DashboardScreen />;
   }
 
   if (showRoleSelection) {

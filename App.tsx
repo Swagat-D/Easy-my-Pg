@@ -18,7 +18,9 @@ export default function App() {
           'Poppins': require('./assets/fonts/Poppins-Regular.ttf'),
           'Poppins-Light': require('./assets/fonts/Poppins-Light.ttf'),
           'Montserrat': require('./assets/fonts/Montserrat-SemiBold.ttf'),
-          'poppins-Medium': require('./assets/fonts/Poppins-Medium.ttf')
+          'poppins-Medium': require('./assets/fonts/Poppins-Medium.ttf'),
+          'Montserrat-Regular': require('./assets/fonts/Montserrat-Regular.ttf'),
+          'Montserrat-Medium': require('./assets/fonts/Montserrat-Medium.ttf'),
         });
         setFontsLoaded(true);
       } catch (error) {
