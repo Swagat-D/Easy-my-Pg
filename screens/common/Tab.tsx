@@ -35,13 +35,17 @@ export default function BottomTabNavigator({
     {
       id: 'home',
       label: 'Home',
-      icon: require('../../assets/home.png'),
+      icon: activeTab === 'home'
+        ? require('../../assets/icons/active-home.png')
+        : require('../../assets/icons/home.png'),
       isActive: activeTab === 'home'
     },
     {
       id: 'money',
       label: 'Money',
-      icon: require('../../assets/money.png'),
+      icon: activeTab === 'money'
+        ? require('../../assets/icons/active-money.png')
+        : require('../../assets/icons/money.png'),
       isActive: activeTab === 'money'
     },
     {
@@ -53,13 +57,17 @@ export default function BottomTabNavigator({
     {
       id: 'tenants',
       label: 'Tenants',
-      icon: require('../../assets/tenants.png'),
+      icon: activeTab === 'tenants'
+        ? require('../../assets/icons/active-tenant.png')
+        : require('../../assets/icons/tenants.png'),
       isActive: activeTab === 'tenants'
     },
     {
       id: 'property',
       label: 'Property',
-      icon: require('../../assets/property.png'),
+      icon: activeTab === 'property'
+        ? require('../../assets/icons/active-property.png')
+        : require('../../assets/icons/property.png'),
       isActive: activeTab === 'property'
     }
   ];
@@ -177,7 +185,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   tabIcon: {
-    tintColor: '#FFFFFF',
+  // Removed tintColor so icons show their original color
   },
   homeIcon: {
     width: 19,

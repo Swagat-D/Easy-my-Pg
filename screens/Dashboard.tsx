@@ -129,7 +129,7 @@ export default function DashboardScreen({
               <TouchableOpacity style={styles.actionButton}>
                 <View style={styles.actionIcon}>
                   <Image 
-                    source={require('../assets/tenants.png')} 
+                    source={require('../assets/icons/tenants.png')} 
                     style={styles.actionIconImage}
                     resizeMode="contain"
                   />
@@ -140,7 +140,7 @@ export default function DashboardScreen({
               <TouchableOpacity style={styles.actionButton}>
                 <View style={styles.actionIcon}>
                   <Image 
-                    source={require('../assets/property.png')} 
+                    source={require('../assets/icons/property.png')} 
                     style={styles.actionIconImage}
                     resizeMode="contain"
                   />
@@ -151,7 +151,7 @@ export default function DashboardScreen({
               <TouchableOpacity style={styles.actionButton}>
                 <View style={styles.actionIcon}>
                   <Image 
-                    source={require('../assets/property.png')} 
+                    source={require('../assets/icons/property.png')} 
                     style={styles.actionIconImage}
                     resizeMode="contain"
                   />
@@ -162,7 +162,7 @@ export default function DashboardScreen({
               <TouchableOpacity style={styles.actionButton}>
                 <View style={styles.actionIcon}>
                   <Image 
-                    source={require('../assets/property.png')} 
+                    source={require('../assets/icons/property.png')} 
                     style={styles.actionIconImage}
                     resizeMode="contain"
                   />
@@ -173,7 +173,7 @@ export default function DashboardScreen({
               <TouchableOpacity style={styles.actionButton}>
                 <View style={styles.actionIcon}>
                   <Image 
-                    source={require('../assets/property.png')} 
+                    source={require('../assets/icons/property.png')} 
                     style={styles.actionIconImage}
                     resizeMode="contain"
                   />
