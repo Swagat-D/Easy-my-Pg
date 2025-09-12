@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform
 } from 'react-native';
+import AddPropertyScreen from './AddPropertyScreen';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -37,6 +38,7 @@ export default function OnboardingScreen({ onNextStep, onBack }: OnboardingScree
   });
 
   const [showPassword, setShowPassword] = useState(false);
+  const[showAddProperty, setShowAddProperty] =  useState(false);
 
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData(prev => ({
@@ -52,10 +54,14 @@ export default function OnboardingScreen({ onNextStep, onBack }: OnboardingScree
            formData.pincode.trim() !== '';
   };
 
+  if (showAddProperty){
+    return <AddPropertyScreen />
+  }
+
   const handleNextStep = () => {
     if (isFormValid() && onNextStep) {
       onNextStep(formData);
-      console.log('Form data:', formData);
+      setShowAddProperty(true);
     }
   };
 

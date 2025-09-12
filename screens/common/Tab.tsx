@@ -23,12 +23,16 @@ interface BottomTabNavigatorProps {
   activeTab: string;
   onTabPress: (tabId: string) => void;
   onAddPress?: () => void;
+  onHomePress?: () => void;
+  onPropertyPress?: () => void;
 }
 
 export default function BottomTabNavigator({ 
   activeTab, 
   onTabPress,
-  onAddPress 
+  onAddPress,
+  onHomePress,
+  onPropertyPress 
 }: BottomTabNavigatorProps) {
 
   const tabs: TabItem[] = [
@@ -75,6 +79,18 @@ export default function BottomTabNavigator({
   const handleTabPress = (tabId: string) => {
     if (tabId === 'add' && onAddPress) {
       onAddPress();
+    } else if (tabId === 'home') {
+      if (onHomePress) {
+        onHomePress(); // This will redirect to dashboard screen
+      } else {
+        onTabPress(tabId); // Fallback to regular tab press
+      }
+    } else if (tabId === 'property') {
+      if (onPropertyPress) {
+        onPropertyPress();
+      } else {
+        onTabPress(tabId);
+      }
     } else {
       onTabPress(tabId);
     }

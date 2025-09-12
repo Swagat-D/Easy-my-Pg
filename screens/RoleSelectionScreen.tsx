@@ -8,6 +8,7 @@ import {
   Dimensions 
 } from 'react-native';
 import OnboardingScreen from './OnboardingScreen';
+import AddPropertyScreen from './AddPropertyScreen';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -27,6 +28,7 @@ export default function RoleSelectionScreen({ onNextStep }: RoleSelectionScreenP
   const [selectedRole, setSelectedRole] = useState<string>('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showAddProperty, setShowAddProperty] = useState(false);
 
   const roles = [
     'Property Manager',
@@ -44,10 +46,7 @@ export default function RoleSelectionScreen({ onNextStep }: RoleSelectionScreenP
   };
 
   const handleNextStep = () => {
-    if (selectedRole && onNextStep) {
-      onNextStep(selectedRole);
-      console.log('Selected role:', selectedRole);
-
+    if (selectedRole) {
       setShowOnboarding(true);
     }
   };
@@ -55,18 +54,13 @@ export default function RoleSelectionScreen({ onNextStep }: RoleSelectionScreenP
   const handleOnboarded = (formData: FormData) => {
     console.log('Onboarding completed with data:', formData);
     console.log('User role:', selectedRole);
-    
     const completeUserData = {
       role: selectedRole,
       ...formData
     };
-    
-    if (onNextStep) {
-      onNextStep(selectedRole);
-    }
-        console.log('Complete user registration data:', completeUserData);
-    
+    console.log('Complete user registration data:', completeUserData);
     setShowOnboarding(false);
+    setShowAddProperty(true);
   };
 
   const handleBackFromOnboarding = () => {
@@ -80,6 +74,10 @@ export default function RoleSelectionScreen({ onNextStep }: RoleSelectionScreenP
         onBack={handleBackFromOnboarding}
       />
     );
+  }
+
+  if (showAddProperty) {
+    return <AddPropertyScreen />;
   }
 
   return (
