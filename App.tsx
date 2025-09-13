@@ -21,6 +21,9 @@ export default function App() {
           'poppins-Medium': require('./assets/fonts/Poppins-Medium.ttf'),
           'Montserrat-Regular': require('./assets/fonts/Montserrat-Regular.ttf'),
           'Montserrat-Medium': require('./assets/fonts/Montserrat-Medium.ttf'),
+          'Montserrat-Bold': require('./assets/fonts/Montserrat-Bold.ttf'),
+          'Montserrat-SemiBold': require('./assets/fonts/Montserrat-SemiBold.ttf'),
+          'Inter-Bold': require('./assets/fonts/Inter-Bold.ttf'),
         });
         setFontsLoaded(true);
       } catch (error) {
