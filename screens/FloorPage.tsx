@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import AddFloorModal from './AddFloorModal'; 
 import AddUnits from './AddUnits'; 
+import MainPropertyScreen from './MainProperty';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -42,6 +43,7 @@ export default function FloorPage({ onBackPress }: FloorPageProps) {
   const [showAddFloorModal, setShowAddFloorModal] = useState(false);
   const [showAddUnits, setShowAddUnits] = useState(false);
   const [selectedFloorForUnits, setSelectedFloorForUnits] = useState<Floor | null>(null);
+  const [showRooms, setShowRooms] = useState(false);
 
   const handleBackPress = () => {
     if (onBackPress) {
@@ -105,8 +107,12 @@ export default function FloorPage({ onBackPress }: FloorPageProps) {
   };
 
   const handleRoomsPress = () => {
-    console.log('Navigate to rooms page');
+    setShowRooms(true)
   };
+
+  if (showRooms){
+    <MainPropertyScreen />
+  }
 
   const handleAddUnits = (floorId: string) => {
     const floor = floors.find(f => f.id === floorId);

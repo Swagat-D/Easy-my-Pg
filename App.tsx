@@ -24,6 +24,7 @@ export default function App() {
           'Montserrat-Bold': require('./assets/fonts/Montserrat-Bold.ttf'),
           'Montserrat-SemiBold': require('./assets/fonts/Montserrat-SemiBold.ttf'),
           'Inter-Bold': require('./assets/fonts/Inter-Bold.ttf'),
+          'Roboto-Medium': require('./assets/fonts/Roboto-Medium.ttf'),
         });
         setFontsLoaded(true);
       } catch (error) {

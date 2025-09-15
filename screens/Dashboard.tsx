@@ -14,22 +14,27 @@ import {
 } from 'react-native';
 import Navbar from './common/Navbar';
 import BottomTabNavigator from './common/Tab';
+import MainPropertyScreen from './MainProperty';
 
 const { width: screenWidth } = Dimensions.get('window');
 
 interface DashboardScreenProps {
   userName?: string;
   propertyName?: string;
+  onPropertyPress?: () => void;
 }
 
 export default function DashboardScreen({ 
   userName = 'Gyana',
-  propertyName = 'Kalyani Nagar'
+  propertyName = 'Kalyani Nagar',
+  onPropertyPress
 }: DashboardScreenProps) {
   const [activeTab, setActiveTab] = useState('home');
+  const [currentScreen, setCurrentScreen] = useState<'property' | 'dashboard'>('dashboard');
   const [searchText, setSearchText] = useState('');
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const slideInterval = useRef<NodeJS.Timeout | null>(null);
+  const [showDashboard, setShowDashboard] = useState(false);
 
   const getCurrentMonth = () => {
     const months = [
@@ -40,70 +45,60 @@ export default function DashboardScreen({
   };
 
   const newsSlides = [
-  {
-    id: 1,
-    image: require('../assets/news.jpg'),
-    title: 'Quit Your Job, Start Your Co-Living!',
-    subtitle: 'Properties in Gurgaon',
-    tag: 'Back to Mumbai'
-  },
-  {
-    id: 2,
-    image: require('../assets/news.jpg'),
-    title: 'New Housing Policies 2024',
-    subtitle: 'Government Updates',
-    tag: 'Policy Changes'
-  },
-  {
-    id: 3,
-    image: require('../assets/news.jpg'),
-    title: 'Real Estate Market Trends',
-    subtitle: 'Investment Opportunities',
-    tag: 'Market Analysis'
-  }
-];
+    {
+      id: 1,
+      image: require('../assets/news.jpg'),
+      title: 'Quit Your Job, Start Your Co-Living!',
+      subtitle: 'Properties in Gurgaon',
+      tag: 'Back to Mumbai'
+    },
+    {
+      id: 2,
+      image: require('../assets/news.jpg'),
+      title: 'New Housing Policies 2024',
+      subtitle: 'Government Updates',
+      tag: 'Policy Changes'
+    },
+    {
+      id: 3,
+      image: require('../assets/news.jpg'),
+      title: 'Real Estate Market Trends',
+      subtitle: 'Investment Opportunities',
+      tag: 'Market Analysis'
+    }
+  ];
 
-useEffect(() => {
-  slideInterval.current = setInterval(() => {
+  useEffect(() => {
+    slideInterval.current = setInterval(() => {
+      setCurrentSlideIndex((prevIndex) => 
+        prevIndex === newsSlides.length - 1 ? 0 : prevIndex + 1
+      );
+    }, 1800);
+
+    return () => {
+      if (slideInterval.current) {
+        clearInterval(slideInterval.current);
+      }
+    };
+  }, [newsSlides.length]);
+
+  // Handle manual slide navigation
+  const handleSlidePress = () => {
     setCurrentSlideIndex((prevIndex) => 
       prevIndex === newsSlides.length - 1 ? 0 : prevIndex + 1
     );
-  }, 1800); // Change slide every 3 seconds
+  };
 
-  return () => {
-    if (slideInterval.current) {
-      clearInterval(slideInterval.current);
+  const handlePropertyPress = () => {
+    if (onPropertyPress) {
+      onPropertyPress();
+    } else {
+      setCurrentScreen('property');
     }
   };
-}, [newsSlides.length]);
-
-// Handle manual slide navigation
-const handleSlidePress = () => {
-  setCurrentSlideIndex((prevIndex) => 
-    prevIndex === newsSlides.length - 1 ? 0 : prevIndex + 1
-  );
-};
 
   const handleTabPress = (tabId: string) => {
     setActiveTab(tabId);
-    
-    // Handle navigation based on tab
-    switch (tabId) {
-      case 'home':
-        console.log('Navigate to Home');
-        break;
-      case 'money':
-        console.log('Navigate to Money/Payments');
-        break;
-      case 'tenants':
-        console.log('Navigate to Tenants');
-        break;
-      case 'property':
-        console.log('Navigate to Property');
-        break;
-      default:
-        break;
-    }
   };
 
   const handleAddPress = () => {
@@ -127,9 +122,12 @@ const handleSlidePress = () => {
     console.log('Support pressed');
   };
 
-  const handleLocationPress = () => {
-    console.log('Location pressed');
-  };
+  // Conditional rendering after all hooks
+  if (currentScreen === 'property') {
+    return (
+      <MainPropertyScreen />
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -345,104 +343,104 @@ const handleSlidePress = () => {
           </View>
 
           
-{/* Other Stats Section */}
-<View style={styles.otherStatsSection}>
-  <View style={styles.otherStatsCard}>
-    <Text style={styles.rentDetailsTitle}>Other Stats</Text>
+          {/* Other Stats Section */}
+          <View style={styles.otherStatsSection}>
+            <View style={styles.otherStatsCard}>
+              <Text style={styles.rentDetailsTitle}>Other Stats</Text>
 
-    <View style={styles.otherStatsInnerContainer}>
-      <View style={styles.otherStatsContainer}>
-        {/* Vacant Beds Section */}
-        <View style={styles.otherStatColumn}>
-          <Text style={styles.otherStatTopLabel}>Vacant Beds</Text>
-          <View style={styles.otherStatNumberContainer}>
-            <Text style={styles.otherStatNumber}>12</Text>
-            <Text style={styles.otherStatSlash}> / </Text>
-            <Text style={styles.otherStatTotal}>145</Text>
-          </View>
-          <Text style={styles.otherStatLabel}>Beds</Text>
-          <TouchableOpacity style={styles.otherViewButton}>
-            <Text style={styles.otherViewButtonText}>VIEW</Text>
-          </TouchableOpacity>
-        </View>
+              <View style={styles.otherStatsInnerContainer}>
+                <View style={styles.otherStatsContainer}>
+                  {/* Vacant Beds Section */}
+                  <View style={styles.otherStatColumn}>
+                    <Text style={styles.otherStatTopLabel}>Vacant Beds</Text>
+                    <View style={styles.otherStatNumberContainer}>
+                      <Text style={styles.otherStatNumber}>12</Text>
+                      <Text style={styles.otherStatSlash}> / </Text>
+                      <Text style={styles.otherStatTotal}>145</Text>
+                    </View>
+                    <Text style={styles.otherStatLabel}>Beds</Text>
+                    <TouchableOpacity style={styles.otherViewButton}>
+                      <Text style={styles.otherViewButtonText}>VIEW</Text>
+                    </TouchableOpacity>
+                  </View>
 
-        {/* Notice Period Section */}
-        <View style={styles.otherStatColumn}>
-          <Text style={styles.otherStatTopLabelRed}>Notice Period</Text>
-          <View style={styles.otherStatNumberContainer}>
-            <Text style={styles.otherStatNumberRed}>5</Text>
-            <Text style={styles.otherStatSlash}> / </Text>
-            <Text style={styles.otherStatTotal}>123</Text>
-          </View>
-          <Text style={styles.otherStatLabel}>Tenants</Text>
-          <TouchableOpacity style={styles.otherViewButton}>
-            <Text style={styles.otherViewButtonText}>VIEW</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </View>
-  </View>
-</View>
-
-{/* Rental News Slider Section */}
-<View style={styles.rentalNewsSection}>
-  <View style={styles.rentalNewsHeader}>
-    <Text style={styles.rentalNewsTitle}>Rental News</Text>
-    <TouchableOpacity onPress={handleSlidePress} >
-  <Image
-    source={require('../assets/right-arrow.png')}
-    style={styles.rightArrowIcon}
-    resizeMode="contain"
-  />
-</TouchableOpacity>
-  </View>
-
-  <View style={styles.sliderContainer}>
-    <ScrollView
-      horizontal
-      pagingEnabled
-      showsHorizontalScrollIndicator={false}
-      style={styles.slider}
-      contentOffset={{ x: currentSlideIndex * 341, y: 0 }}
-      onMomentumScrollEnd={(event) => {
-        const slideIndex = Math.round(event.nativeEvent.contentOffset.x / 341);
-        setCurrentSlideIndex(slideIndex);
-      }}
-    >
-      {newsSlides.map((slide, index) => (
-        <View key={slide.id} style={styles.slideItem}>
-          <Image
-            source={slide.image}
-            style={styles.slideImage}
-            resizeMode="cover"
-          />
-          <View style={styles.slideOverlay}>
-            <View style={styles.slideContent}>
-              <Text style={styles.slideTitle}>{slide.title}</Text>
-              <Text style={styles.slideSubtitle}>{slide.subtitle}</Text>
-              <View style={styles.slideTag}>
-                <Text style={styles.slideTagText}>{slide.tag}</Text>
+                  {/* Notice Period Section */}
+                  <View style={styles.otherStatColumn}>
+                    <Text style={styles.otherStatTopLabelRed}>Notice Period</Text>
+                    <View style={styles.otherStatNumberContainer}>
+                      <Text style={styles.otherStatNumberRed}>5</Text>
+                      <Text style={styles.otherStatSlash}> / </Text>
+                      <Text style={styles.otherStatTotal}>123</Text>
+                    </View>
+                    <Text style={styles.otherStatLabel}>Tenants</Text>
+                    <TouchableOpacity style={styles.otherViewButton}>
+                      <Text style={styles.otherViewButtonText}>VIEW</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
               </View>
             </View>
           </View>
-        </View>
-      ))}
-    </ScrollView>
 
-    {/* Slide Indicators */}
-    <View style={styles.slideIndicators}>
-      {newsSlides.map((_, index) => (
-        <View
-          key={index}
-          style={[
-            styles.indicator,
-            index === currentSlideIndex && styles.activeIndicator
-          ]}
-        />
-      ))}
-    </View>
-  </View>
-</View>
+          {/* Rental News Slider Section */}
+          <View style={styles.rentalNewsSection}>
+            <View style={styles.rentalNewsHeader}>
+              <Text style={styles.rentalNewsTitle}>Rental News</Text>
+              <TouchableOpacity onPress={handleSlidePress} >
+            <Image
+              source={require('../assets/right-arrow.png')}
+              style={styles.rightArrowIcon}
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
+            </View>
+
+            <View style={styles.sliderContainer}>
+              <ScrollView
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                style={styles.slider}
+                contentOffset={{ x: currentSlideIndex * 341, y: 0 }}
+                onMomentumScrollEnd={(event) => {
+                  const slideIndex = Math.round(event.nativeEvent.contentOffset.x / 341);
+                  setCurrentSlideIndex(slideIndex);
+                }}
+              >
+                {newsSlides.map((slide, index) => (
+                  <View key={slide.id} style={styles.slideItem}>
+                    <Image
+                      source={slide.image}
+                      style={styles.slideImage}
+                      resizeMode="cover"
+                    />
+                    <View style={styles.slideOverlay}>
+                      <View style={styles.slideContent}>
+                        <Text style={styles.slideTitle}>{slide.title}</Text>
+                        <Text style={styles.slideSubtitle}>{slide.subtitle}</Text>
+                        <View style={styles.slideTag}>
+                          <Text style={styles.slideTagText}>{slide.tag}</Text>
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+                ))}
+              </ScrollView>
+
+              {/* Slide Indicators */}
+              <View style={styles.slideIndicators}>
+                {newsSlides.map((_, index) => (
+                  <View
+                    key={index}
+                    style={[
+                      styles.indicator,
+                      index === currentSlideIndex && styles.activeIndicator
+                    ]}
+                  />
+                ))}
+              </View>
+            </View>
+          </View>
           
         </View>
       </ScrollView>
@@ -452,6 +450,7 @@ const handleSlidePress = () => {
         activeTab={activeTab}
         onTabPress={handleTabPress}
         onAddPress={handleAddPress}
+        onPropertyPress={handlePropertyPress}
       />
     </SafeAreaView>
   );
