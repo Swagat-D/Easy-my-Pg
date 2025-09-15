@@ -1,51 +1,14 @@
+// 1. UPDATE YOUR App.tsx (Replace your existing App.tsx with this enhanced version)
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, Image, Dimensions } from 'react-native';
 import { useEffect, useState } from 'react';
 import * as Font from 'expo-font';
-import LoginScreen from './screens/LoginScreen';
+import { AuthProvider } from './contexts/AuthContext';
+import AppNavigator from './navigation/AppNavigator';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
-export default function App() {
-  const [fontsLoaded, setFontsLoaded] = useState(false);
-  const [showSplash, setShowSplash] = useState(true);
-
-  useEffect(() => {
-    async function loadFonts() {
-      try {
-        await Font.loadAsync({
-          'Sansita': require('./assets/fonts/Sansita-Regular.ttf'),
-          'Poppins': require('./assets/fonts/Poppins-Regular.ttf'),
-          'Poppins-Light': require('./assets/fonts/Poppins-Light.ttf'),
-          'Montserrat': require('./assets/fonts/Montserrat-SemiBold.ttf'),
-          'poppins-Medium': require('./assets/fonts/Poppins-Medium.ttf'),
-          'Montserrat-Regular': require('./assets/fonts/Montserrat-Regular.ttf'),
-          'Montserrat-Medium': require('./assets/fonts/Montserrat-Medium.ttf'),
-          'Montserrat-Bold': require('./assets/fonts/Montserrat-Bold.ttf'),
-          'Montserrat-SemiBold': require('./assets/fonts/Montserrat-SemiBold.ttf'),
-          'Inter-Bold': require('./assets/fonts/Inter-Bold.ttf'),
-          'Roboto-Medium': require('./assets/fonts/Roboto-Medium.ttf'),
-        });
-        setFontsLoaded(true);
-      } catch (error) {
-        console.log('Font loading error:', error);
-        setFontsLoaded(true);
-      }
-    }
-    loadFonts();
-  }, []);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowSplash(false);
-    }, 1500);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (!fontsLoaded || showSplash) {
-  
-
+const SplashScreen = () => {
   return (
     <View style={styles.container}>
       <StatusBar style="dark" />
@@ -86,9 +49,62 @@ export default function App() {
       </View>
     </View>
   );
-}
+};
 
-  return <LoginScreen />
+const AppContent = () => {
+  const [fontsLoaded, setFontsLoaded] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
+
+  useEffect(() => {
+    async function loadFonts() {
+      try {
+        await Font.loadAsync({
+          'Sansita': require('./assets/fonts/Sansita-Regular.ttf'),
+          'Poppins': require('./assets/fonts/Poppins-Regular.ttf'),
+          'Poppins-Light': require('./assets/fonts/Poppins-Light.ttf'),
+          'Montserrat': require('./assets/fonts/Montserrat-SemiBold.ttf'),
+          'poppins-Medium': require('./assets/fonts/Poppins-Medium.ttf'),
+          'Montserrat-Regular': require('./assets/fonts/Montserrat-Regular.ttf'),
+          'Montserrat-Medium': require('./assets/fonts/Montserrat-Medium.ttf'),
+          'Montserrat-Bold': require('./assets/fonts/Montserrat-Bold.ttf'),
+          'Montserrat-SemiBold': require('./assets/fonts/Montserrat-SemiBold.ttf'),
+          'Inter-Bold': require('./assets/fonts/Inter-Bold.ttf'),
+          'Roboto-Medium': require('./assets/fonts/Roboto-Medium.ttf'),
+        });
+        setFontsLoaded(true);
+      } catch (error) {
+        console.log('Font loading error:', error);
+        setFontsLoaded(true); 
+      }
+    }
+    loadFonts();
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (!fontsLoaded || showSplash) {
+    return <SplashScreen />;
+  }
+
+  return (
+  <AuthProvider>
+    <AppNavigator />
+  </AuthProvider>
+  )
+};
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -105,29 +121,29 @@ const styles = StyleSheet.create({
     left: 140,
   },
   appTitle: {
-  position: 'absolute',
-  width: 240, 
-  height: 50,
-  top: 347,
-  left: 72,
-  fontFamily: 'Sansita',
-  fontWeight: '400',
-  fontSize: 40,
-  lineHeight: 48, 
-  letterSpacing: 0,
-  color: '#000',
-  textAlign: 'center', 
-  includeFontPadding: false, 
+    position: 'absolute',
+    width: 240, 
+    height: 50,
+    top: 347,
+    left: 72,
+    fontFamily: 'Sansita',
+    fontWeight: '400',
+    fontSize: 40,
+    lineHeight: 48, 
+    letterSpacing: 0,
+    color: '#000',
+    textAlign: 'center', 
+    includeFontPadding: false, 
   },
   subtitleContainer: {
-  position: 'absolute',
-  width: 300, 
-  height: 30, 
-  top: 394,
-  left: 40, 
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'center',
+    position: 'absolute',
+    width: 300, 
+    height: 30, 
+    top: 394,
+    left: 40, 
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   subtitleText: {
     fontFamily: 'Poppins-Light',
@@ -161,14 +177,14 @@ const styles = StyleSheet.create({
     textAlignVertical: 'center',
   },
   footerContainer: {
-  position: 'absolute',
-  top: 742,
-  left: 69,
-  width: 260,
-  height: 24,
-  alignItems: 'center',
-  justifyContent: 'center',
-  padding: 0,
+    position: 'absolute',
+    top: 742,
+    left: 69,
+    width: 260,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 0,
   },
   footerContent: {
     flexDirection: 'row',

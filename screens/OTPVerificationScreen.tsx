@@ -10,6 +10,7 @@ import {
   Clipboard,
   Alert 
 } from 'react-native';
+import { useAuth } from '../contexts/AuthContext';
 import RoleSelectionScreen from './RoleSelectionScreen';
 import DashboardScreen from './Dashboard';
 
@@ -34,6 +35,9 @@ export default function OTPVerificationScreen({
   const inputRefs = useRef<(TextInput | null)[]>([]);
   const [showRoleSelection, setShowRoleSelection] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [resendTimer, setResendTimer] = useState(120);
+  const { login, sendOTP, error, clearError } = useAuth();
 
   useEffect(() => {
     const autoFetchOTP = async () => {
@@ -60,6 +64,13 @@ export default function OTPVerificationScreen({
     const timer = setTimeout(autoFetchOTP, 1000);
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    if (resendTimer > 0) {
+      const timer = setTimeout(() => setResendTimer(resendTimer - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendTimer]);
 
   useEffect(() => {
     if (otp.join('').length === 6) {
@@ -115,16 +126,44 @@ export default function OTPVerificationScreen({
     }
   };
 
-  const handleVerifyOTP = (otpArray = otp) => {
-    const otpString = otpArray.join('');
-    if (otpString.length === 6) {
-      if (isFromSignup) {
-        setShowRoleSelection(true);
-      } else {
-        setShowOnboarding(true);
-      }
+  const handleVerifyOTP = async (otpArray = otp) => {
+  const otpString = otpArray.join('');
+  if (otpString.length !== 6) {
+    Alert.alert('Incomplete OTP', 'Please enter the complete 6-digit OTP');
+    return;
+  }
+
+  try {
+    setIsLoading(true);
+    clearError();
+
+    if (isFromSignup) {
+      Alert.alert('Verification Successful', 'Your account has been verified successfully!');
+      setShowRoleSelection(true);
+    } else {
+      await login(phoneNumber, otpString);
+      Alert.alert('Login Successful', 'Welcome back!');
     }
-  };
+    
+  } catch (error: any) {
+    console.error('OTP verification error:', error);
+    
+    if (error.message.includes('invalid otp') || 
+        error.message.includes('expired') || 
+        error.message.includes('incorrect')) {
+      Alert.alert('Invalid OTP', 'The OTP you entered is incorrect or has expired. Please try again.');
+    } else if (error.message.includes('User not found')) {
+      Alert.alert('Account Not Found', 'No account found with this number. Please sign up first.');
+    } else {
+      Alert.alert('Verification Failed', error.message || 'Failed to verify OTP. Please try again.');
+    }
+    
+    setOtp(['', '', '', '', '', '']);
+    inputRefs.current[0]?.focus();
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const handleRoleSelected = (role: string) => {
     console.log('selected role:', role);
@@ -144,14 +183,28 @@ export default function OTPVerificationScreen({
     }
   };
 
-  const handleResendOTP = () => {
-    console.log('Resending OTP to:', phoneNumber);
-    setOtp(['', '', '', '', '', '']);
+  const handleResendOTP = async () => {
+  if (resendTimer > 0) {
+    Alert.alert('Please Wait', `You can resend OTP after ${resendTimer} seconds`);
+    return;
+  }
+
+  try {
+    setIsLoading(true);
+    clearError();
     
-    if (isFromSignup) {
-      console.log('Resending OTP for signup');
-    }
-  };
+    await sendOTP(phoneNumber);
+    setResendTimer(120);
+    setOtp(['', '', '', '', '', '']);
+    Alert.alert('OTP Resent', 'A new OTP has been sent to your mobile number');
+    inputRefs.current[0]?.focus();
+    
+  } catch (error: any) {
+    Alert.alert('Resend Failed', error.message || 'Failed to resend OTP. Please try again.');
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <View style={styles.container}>

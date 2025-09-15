@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   StyleSheet, 
   Text, 
@@ -6,10 +6,13 @@ import {
   Image, 
   TextInput, 
   TouchableOpacity,
-  Dimensions 
+  Dimensions,
+  Alert, 
+  ActivityIndicator
 } from 'react-native';
 import OTPVerificationScreen from './OTPVerificationScreen';
 import SignupScreen from './SignUpScreen';
+import { useAuth } from '../contexts/AuthContext';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -18,40 +21,62 @@ interface LoginScreenProps {
   onSignupRedirect?: () => void;
 }
 
-export default function LoginScreen({ initialPhoneNumber = '', onSignupRedirect }: LoginScreenProps) {
-  const [phoneNumber, setPhoneNumber] = useState(initialPhoneNumber);
-  const [showOTPScreen, setShowOTPScreen] = useState(false);
+export default function LoginScreen({ initialPhoneNumber = '' }) {
+  const { 
+    currentPhoneInput, setCurrentPhoneInput,
+    phoneNumber, showOTPScreen, setShowOTPScreen,
+    sendOTP, isLoading, clearError
+  } = useAuth();
+
   const [showSignupScreen, setShowSignupScreen] = useState(false);
-  const handleSendOTP = () => {
-    if (phoneNumber.length === 10) {
-      setShowOTPScreen(true);
+  const [manualClear, setManualClear] = useState(false);
+
+  useEffect(() => {
+    if (!currentPhoneInput && initialPhoneNumber) {
+      setCurrentPhoneInput(initialPhoneNumber);
+    }
+  }, [initialPhoneNumber]);
+
+  const handlePhoneNumberChange = (text: string) => {
+    if (text === '' && !manualClear) return;
+    if (text === '' && manualClear) setManualClear(false);
+    if (showOTPScreen) return; 
+    setCurrentPhoneInput(text);
+  };
+
+  const handleSendOTP = async () => {
+    if (currentPhoneInput.length === 10) {
+      try {
+        clearError();
+        await sendOTP(currentPhoneInput);
+        setShowOTPScreen(true);
+      } catch (err: any) {
+        Alert.alert('Error', err?.message ?? 'Failed to send OTP');
+      }
+    } else {
+      Alert.alert('Invalid Phone Number', 'Please enter a valid 10-digit phone number');
     }
   };
 
-  React.useEffect(() => {
-    if (phoneNumber.length === 10) {
-      import('react-native').then(RN => RN.Keyboard.dismiss());
+  const handleClearNumber = () => {
+    if (!showOTPScreen) {
+      setManualClear(true);
+      setCurrentPhoneInput('');
+      clearError();
     }
-  }, [phoneNumber]);
-
-  if (showSignupScreen) {
-  return <SignupScreen />;
-}
-
-  if (showOTPScreen) {
-  return <OTPVerificationScreen 
-    phoneNumber={phoneNumber} 
-    onEditNumber={() => setShowOTPScreen(false)} 
-  />;
-}
-
-const handleClearNumber = () => {
-    setPhoneNumber('');
   };
 
-  const handleSignupRedirect = () => {
-  setShowSignupScreen(true);
-};
+  const handleSignupRedirect = () => setShowSignupScreen(true);
+
+  const handleEditNumber = () => {
+    setShowOTPScreen(false);
+  };
+
+  if (showSignupScreen) return <SignupScreen />;
+
+  if (showOTPScreen && phoneNumber) {
+    return <OTPVerificationScreen phoneNumber={phoneNumber} onEditNumber={handleEditNumber} />;
+  }
 
   return (
     <View style={styles.container}>
@@ -76,17 +101,19 @@ const handleClearNumber = () => {
         <Text style={styles.countryCode}>+91</Text>
         
         <View style={styles.numberPlaceholders}>
-          <Text style={[styles.numberText, { color: phoneNumber[0] ? '#000' : '#CCCCCC' }]}>{phoneNumber[0] || '0'}</Text>
-          <Text style={[styles.numberText, { color: phoneNumber[1] ? '#000' : '#CCCCCC' }]}>{phoneNumber[1] || '0'}</Text>
-          <Text style={[styles.numberText, { color: phoneNumber[2] ? '#000' : '#CCCCCC' }]}>{phoneNumber[2] || '0'}</Text>
-          <Text style={[styles.numberText, { color: phoneNumber[3] ? '#000' : '#CCCCCC' }]}>{phoneNumber[3] || '0'}</Text>
-          <Text style={[styles.numberText, { color: phoneNumber[4] ? '#000' : '#CCCCCC' }]}>{phoneNumber[4] || '0'}</Text>
-          <Text style={[styles.numberText, { color: phoneNumber[5] ? '#000' : '#CCCCCC' }]}>{phoneNumber[5] || '0'}</Text>
-          <Text style={[styles.numberText, { color: phoneNumber[6] ? '#000' : '#CCCCCC' }]}>{phoneNumber[6] || '0'}</Text>
-          <Text style={[styles.numberText, { color: phoneNumber[7] ? '#000' : '#CCCCCC' }]}>{phoneNumber[7] || '0'}</Text>
-          <Text style={[styles.numberText, { color: phoneNumber[8] ? '#000' : '#CCCCCC' }]}>{phoneNumber[8] || '0'}</Text>
-          <Text style={[styles.numberText, { color: phoneNumber[9] ? '#000' : '#CCCCCC' }]}>{phoneNumber[9] || '0'}</Text>
+          {Array.from({ length: 10 }).map((_, index) => (
+            <Text
+              key={index}
+              style={[
+                styles.numberText,
+                { color: currentPhoneInput[index] ? '#000' : '#CCCCCC' },
+              ]}
+            >
+              {currentPhoneInput[index] || '0'}
+            </Text>
+          ))}
         </View>
+
         
         <TouchableOpacity onPress={handleClearNumber} style={styles.clearButton}>
           <Image 
@@ -99,18 +126,26 @@ const handleClearNumber = () => {
       
       <TextInput
         style={styles.hiddenInput}
-        value={phoneNumber}
-        onChangeText={setPhoneNumber}
+        value={currentPhoneInput}
+        onChangeText={handlePhoneNumberChange}
         keyboardType="numeric"
         maxLength={10}
         placeholder="Enter phone number"
       />
       
-      <TouchableOpacity style={styles.sendOTPButton} onPress={handleSendOTP}>
-        <View style={styles.otpContainer}>
-          <Text style={styles.sendOTPText}>Send OTP</Text>
-        </View>
-      </TouchableOpacity>
+        <TouchableOpacity 
+          style={[styles.sendOTPButton, { opacity: isLoading ? 0.7 : 1 }]} 
+          onPress={handleSendOTP}
+          disabled={isLoading}
+        >
+          <View style={styles.otpContainer}>
+            {isLoading ? (
+              <ActivityIndicator color="#000" size="small" />
+            ) : (
+              <Text style={styles.sendOTPText}>Send OTP</Text>
+            )}
+          </View>
+        </TouchableOpacity>
       
       <View style={styles.termsContainer}>
         <Text style={styles.termsText}>By continuing you agree to our </Text>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   StyleSheet,
   Text,
@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Dimensions
 } from 'react-native';
+import { useAuth } from '../../contexts/AuthContext';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -27,10 +28,16 @@ export default function Navbar({
   onSupportPress,
   onDropdownPress
 }: NavbarProps) {
+  const { logout } = useAuth();
+  const [showDropdown, setShowDropdown] = useState(false);
+
   return (
     <View style={styles.container}>
       {/* Profile Photo Container */}
-      <TouchableOpacity style={styles.profilePhotoContainer} onPress={onProfilePress}>
+      <TouchableOpacity
+        style={styles.profilePhotoContainer}
+        onPress={() => setShowDropdown(!showDropdown)}
+      >
         <View style={styles.profilePhotoCircle}>
           {profileImage ? (
             <Image
@@ -47,6 +54,15 @@ export default function Navbar({
           )}
         </View>
       </TouchableOpacity>
+
+      {/* Dropdown for Logout */}
+      {showDropdown && (
+        <View style={styles.dropdownMenu}>
+          <TouchableOpacity onPress={logout} style={styles.dropdownItem}>
+            <Text style={styles.dropdownText}>Logout</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* Welcome Text */}
       <Text style={styles.welcomeText}>Welcome {userName}</Text>
@@ -203,8 +219,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: 8.637,
     height: 14.256,
-    top: 12, // 3 + 9
-    left: 15, // 3 + 12
+    top: 12,
+    left: 15,
   },
   
   questionCircleBorder: {
@@ -217,5 +233,29 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: '#000000',
     backgroundColor: 'transparent',
+  },
+
+  dropdownMenu: {
+    position: 'absolute',
+    top: 65,
+    left: 18,
+    backgroundColor: '#fff',
+    borderRadius: 6,
+    padding: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
+    zIndex: 10,
+  },
+  dropdownItem: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  dropdownText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#FF4B4B',
   },
 });

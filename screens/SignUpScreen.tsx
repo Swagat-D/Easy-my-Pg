@@ -9,8 +9,10 @@ import {
   Dimensions,
   ScrollView,
   KeyboardAvoidingView,
-  Platform
+  Platform,
+  ActivityIndicator,
 } from 'react-native';
+import { useAuth } from '../contexts/AuthContext';
 import LoginScreen from './LoginScreen';
 import OTPVerificationScreen from './OTPVerificationScreen';
 
@@ -41,12 +43,36 @@ export default function SignupScreen({ onVerifyOTP, onLoginRedirect }: SignupScr
   const [showPassword, setShowPassword] = useState(false);
   const [showLoginScreen, setShowLoginScreen] = useState(false);
   const [showOTPScreen, setShowOTPScreen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const { register, sendOTP, clearError } = useAuth();
+  const [formError, setFormError] = useState<string | null>(null);
 
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
+    setFormError(null); // clear error when user types
+  };
+
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePhoneNumber = (phone: string): boolean => {
+    const phoneRegex = /^[6-9]\d{9}$/;
+    return phoneRegex.test(phone);
+  };
+
+  const validatePassword = (password: string): boolean => {
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).{6,}$/;
+    return passwordRegex.test(password);
+  };
+
+  const validatePincode = (pincode: string): boolean => {
+    const pincodeRegex = /^\d{6}$/;
+    return pincodeRegex.test(pincode);
   };
 
   const isFormValid = () => {
@@ -58,19 +84,70 @@ export default function SignupScreen({ onVerifyOTP, onLoginRedirect }: SignupScr
            formData.pincode.trim() !== '';
   };
 
-  const handleVerifyOTP = () => {
-    if (isFormValid()) {
+  const handleVerifyOTP = async () => {
+    if (!formData.name.trim()) {
+      setFormError('Please enter your name');
+      return;
+    }
+    if (!validateEmail(formData.emailAddress)) {
+      setFormError('Please enter a valid email address');
+      return;
+    }
+    if (!validatePhoneNumber(formData.mobileNumber)) {
+      setFormError('Please enter a valid 10-digit mobile number starting with 6, 7, 8, or 9');
+      return;
+    }
+    if (!validatePassword(formData.password)) {
+      setFormError('Password must be at least 6 characters long and contain both letters and numbers');
+      return;
+    }
+    if (!validatePincode(formData.pincode)) {
+      setFormError('Please enter a valid 6-digit pincode');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      clearError();
+
+      await register({
+        email: formData.emailAddress,
+        password: formData.password,
+        name: formData.name,
+        phoneNumber: formData.mobileNumber,
+        ownershipType: 'Individual'
+      });
+
+      await sendOTP(formData.mobileNumber);
       setShowOTPScreen(true);
+      setFormError('✅ Account created. Please verify your mobile number.');
+
+    } catch (error: any) {
+      console.error('Registration error:', error);
+
+      if (
+        error.message.includes('user already exists') ||
+        error.message.includes('already registered') ||
+        error.message.includes('already in use')
+      ) {
+        setFormError('⚠️ An account with this mobile number or email already exists. Please login instead.');
+      } else if (error.message.includes('network') || error.message.includes('timeout')) {
+        setFormError('⚠️ Please check your internet connection and try again.');
+      } else {
+        setFormError(error.message || '❌ Failed to create account. Please try again.');
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
   if (showLoginScreen) {
-  return <LoginScreen />;
-}
+    return <LoginScreen />;
+  }
 
-const handleEditNumber = () => {
-  setShowOTPScreen(false);
-};
+  const handleEditNumber = () => {
+    setShowOTPScreen(false);
+  };
 
   const handleLoginRedirect = () => {
     setShowLoginScreen(true);
@@ -81,15 +158,15 @@ const handleEditNumber = () => {
   };
 
   if (showOTPScreen) {
-  return (
-    <OTPVerificationScreen 
-      phoneNumber={formData.mobileNumber}
-      onEditNumber={handleEditNumber}
-      isFromSignup={true}
-      signupData={formData}
-    />
-  );
-}
+    return (
+      <OTPVerificationScreen 
+        phoneNumber={formData.mobileNumber}
+        onEditNumber={handleEditNumber}
+        isFromSignup={true}
+        signupData={formData}
+      />
+    );
+  }
 
   return (
     <KeyboardAvoidingView 
@@ -121,6 +198,13 @@ const handleEditNumber = () => {
           <Text style={styles.mainTitle}>PG ka Management?</Text>
           <Text style={styles.mainTitlea}>Ab Bilkul Easy!</Text>
         </View>
+
+        {/* Error Box */}
+        {formError && (
+          <View style={styles.errorBox}>
+            <Text style={styles.errorText}>{formError}</Text>
+          </View>
+        )}
         
         <View style={styles.formContainer}>
           <TextInput
@@ -187,17 +271,24 @@ const handleEditNumber = () => {
         <TouchableOpacity 
           style={[
             styles.verifyOTPButton, 
-            isFormValid() && styles.verifyOTPButtonActive
+            isFormValid() && styles.verifyOTPButtonActive,
+            isLoading && styles.verifyOTPButtonDisabled
           ]} 
           onPress={handleVerifyOTP}
-          disabled={!isFormValid()}
+          disabled={!isFormValid() || isLoading}
         >
-          <Text style={[
-            styles.verifyOTPButtonText, 
-            isFormValid() && styles.verifyOTPButtonTextActive
-          ]}>
-            Verify OTP
-          </Text>
+          <View style={styles.buttonContent}>
+            {isLoading ? (
+              <ActivityIndicator size="small" color="#000" />
+            ) : (
+              <Text style={[
+                styles.verifyOTPButtonText, 
+                isFormValid() && styles.verifyOTPButtonTextActive
+              ]}>
+                Create Account
+              </Text>
+            )}
+          </View>
         </TouchableOpacity>
         
         <View style={styles.loginContainer}>
@@ -279,6 +370,21 @@ const styles = StyleSheet.create({
     color: '#000',
     textAlign: 'center',
     includeFontPadding: false,
+  },
+  errorBox: {
+    backgroundColor: '#fdecea',
+    borderRadius: 8,
+    padding: 12,
+    marginHorizontal: 25,
+    marginTop: 20,
+    borderWidth: 1,
+    borderColor: '#f5c2c7',
+  },
+  errorText: {
+    color: '#b71c1c',
+    fontSize: 14,
+    fontWeight: '500',
+    textAlign: 'center',
   },
   formContainer: {
     position: 'absolute',
@@ -381,5 +487,13 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     color: '#FF0000',
     textDecorationLine: 'underline',
+  },
+  verifyOTPButtonDisabled: {
+    opacity: 0.6,
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
