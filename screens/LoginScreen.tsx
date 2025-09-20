@@ -14,7 +14,8 @@ import OTPVerificationScreen from './OTPVerificationScreen';
 import SignupScreen from './SignUpScreen';
 import { useAuth } from '../contexts/AuthContext';
 
-const { width: screenWidth } = Dimensions.get('window');
+
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 interface LoginScreenProps {
   initialPhoneNumber?: string;
@@ -38,9 +39,12 @@ export default function LoginScreen({ initialPhoneNumber = '' }) {
   }, [initialPhoneNumber]);
 
   const handlePhoneNumberChange = (text: string) => {
-    if (text === '' && !manualClear) return;
-    if (text === '' && manualClear) setManualClear(false);
-    if (showOTPScreen) return; 
+    if (showOTPScreen) return;
+    if (text === '') {
+      setManualClear(false);
+      setCurrentPhoneInput('');
+      return;
+    }
     setCurrentPhoneInput(text);
   };
 
@@ -176,77 +180,77 @@ const styles = StyleSheet.create({
   },
   logo: {
     position: 'absolute',
-    width: 95,
-    height: 101,
-    top: 151,
-    left: 140,
+    width: screenWidth*0.264,
+    height: screenHeight*0.12625,
+    top: screenHeight*0.189,
+    left: screenWidth*0.37,
   },
   subtitleContainer: {
     position: 'absolute',
-    width: 214,
-    height: 24,
-    top: 269,
-    left: 78,
+    width: screenWidth*0.5944,
+    height: screenHeight*0.03,
+    top: screenHeight*0.33625,
+    left: screenWidth*0.2,
     flexDirection: 'row',
     alignItems: 'center',
   },
   subtitleText: {
     fontFamily: 'Poppins-Light',
     fontWeight: '300',
-    fontSize: 16,
-    lineHeight: 24, 
+    fontSize: 16 ,
+    lineHeight: screenHeight*0.03, 
     letterSpacing: 0,
     color: '#000',
     textAlign: 'center',
     includeFontPadding: false,
   },
   flagIcon: {
-    width: 24,
-    height: 24,
+    width: screenHeight*0.03,
+    height: screenHeight*0.03,
     marginLeft: 4,
   },
   loginText: {
     position: 'absolute',
-    width: 214,
-    height: 24,
-    top: 330,
-    left: 81,
+    width: screenWidth*0.5944,
+    height: screenHeight*0.03,
+    top: screenHeight*0.4,
+    left: screenWidth*0.2,
     fontFamily: 'Poppins-Light',
     fontWeight: '300',
     fontSize: 16,
-    lineHeight: 16,
+    lineHeight: screenHeight*0.02,
     color: '#000',
     textAlign: 'center',
   },
   phoneInputContainer: {
     position: 'absolute',
-    top: 394,
+    top: screenHeight*0.4925,
     flexDirection: 'row',
     alignItems: 'center',
     width: screenWidth,
   },
   countryCode: {
     position: 'absolute',
-    width: 44,
-    height: 24,
-    left: 37,
+    width: screenWidth*0.122,
+    height: screenHeight*0.03,
+    left: screenWidth*0.102,
     fontFamily: 'Montserrat',
     fontWeight: '600',
     fontSize: 26,
-    lineHeight: 26,
+    lineHeight: screenHeight*0.035,
     color: '#000',
   },
   numberPlaceholders: {
     position: 'absolute',
-    left: 90,
-    width: 200,
+    left: screenWidth*0.24,
+    width: screenWidth*0.52,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   numberBox: {
-    width: 18,
-    height: 24,
+    width: screenWidth*0.05,
+    height: screenHeight*0.03,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -254,35 +258,35 @@ const styles = StyleSheet.create({
     fontFamily: 'Montserrat',
     fontWeight: '600',
     fontSize: 26,
-    lineHeight: 24,
+    lineHeight: screenHeight*0.03,
     color: '#000',
   },
   clearButton: {
     position: 'absolute',
-    width: 30,
-    height: 26,
-    left: 298,
+    width: screenWidth*0.0833,
+    height: screenHeight*0.0325,
+    left: screenWidth*0.78,
     justifyContent: 'center',
     alignItems: 'center',
   },
   clearIcon: {
-    width: 30,
-    height: 26,
+    width: screenWidth*0.0833,
+    height: screenHeight*0.0325,
   },
   hiddenInput: {
     position: 'absolute',
     opacity: 0,
-    top: 394,
-    left: 90,
-    width: 200,
-    height: 24,
+    top: screenHeight*0.4925,
+    left: screenWidth*0.25,
+    width: screenWidth*0.55,
+    height: screenHeight*0.03,
   },
   sendOTPButton: {
     position: 'absolute',
-    width: 332,
-    height: 50,
-    top: 460,
-    left: 22,
+    width: screenWidth*0.87,
+    height: screenHeight*0.0625,
+    top: screenHeight*0.55,
+    left: screenWidth*0.06,
     backgroundColor: '#FFD700',
     borderRadius: 35,
     justifyContent: 'center',
@@ -291,8 +295,8 @@ const styles = StyleSheet.create({
     borderColor: '#AEAEAE',
   },
   otpContainer: {
-    width: 81,
-    height: 33,
+    width: screenWidth*0.225,
+    height: screenHeight*0.041,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -301,13 +305,13 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 16,
     color: '#000',
-    lineHeight: 24
+    lineHeight: screenHeight*0.03
   },
   termsContainer: {
     position: 'absolute',
-    top: 530,
-    left: 22,
-    width: 332,
+    top: screenHeight*0.64,
+    left: screenWidth*0.06,
+    width: screenWidth*0.9,
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
@@ -327,10 +331,10 @@ const styles = StyleSheet.create({
   },
   tenantContainer: {
     position: 'absolute',
-    width: 160,
-    height: 20,
-    top: 670,
-    left: 100,
+    width: screenWidth*0.44,
+    height: screenHeight*0.025,
+    top: screenHeight*0.837,
+    left: screenWidth*0.25,
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -338,14 +342,14 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins',
     fontWeight: '500',
     fontSize: 13,
-    lineHeight: 16,
+    lineHeight: screenHeight*0.02,
     color: '#000',
   },
   tenantAppText: {
     fontFamily: 'Poppins',
     fontWeight: '500',
     fontSize: 13,
-    lineHeight: 16,
+    lineHeight: screenHeight*0.02,
     color: '#FF0000',
     textDecorationLine: 'underline',
   },

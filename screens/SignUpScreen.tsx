@@ -16,7 +16,7 @@ import { useAuth } from '../contexts/AuthContext';
 import LoginScreen from './LoginScreen';
 import OTPVerificationScreen from './OTPVerificationScreen';
 
-const { width: screenWidth } = Dimensions.get('window');
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 interface SignupScreenProps {
   onVerifyOTP?: (formData: FormData) => void;
@@ -28,7 +28,6 @@ interface FormData {
   emailAddress: string;
   mobileNumber: string;
   password: string;
-  pincode: string;
 }
 
 export default function SignupScreen({ onVerifyOTP, onLoginRedirect }: SignupScreenProps) {
@@ -37,7 +36,6 @@ export default function SignupScreen({ onVerifyOTP, onLoginRedirect }: SignupScr
     emailAddress: '',
     mobileNumber: '',
     password: '',
-    pincode: '',
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -70,18 +68,12 @@ export default function SignupScreen({ onVerifyOTP, onLoginRedirect }: SignupScr
     return passwordRegex.test(password);
   };
 
-  const validatePincode = (pincode: string): boolean => {
-    const pincodeRegex = /^\d{6}$/;
-    return pincodeRegex.test(pincode);
-  };
-
   const isFormValid = () => {
     return formData.name.trim() !== '' &&
            formData.emailAddress.trim() !== '' &&
            formData.mobileNumber.trim() !== '' &&
            formData.mobileNumber.length === 10 &&
-           formData.password.trim() !== '' &&
-           formData.pincode.trim() !== '';
+           formData.password.trim() !== '';
   };
 
   const handleVerifyOTP = async () => {
@@ -99,10 +91,6 @@ export default function SignupScreen({ onVerifyOTP, onLoginRedirect }: SignupScr
     }
     if (!validatePassword(formData.password)) {
       setFormError('Password must be at least 6 characters long and contain both letters and numbers');
-      return;
-    }
-    if (!validatePincode(formData.pincode)) {
-      setFormError('Please enter a valid 6-digit pincode');
       return;
     }
 
@@ -256,16 +244,6 @@ export default function SignupScreen({ onVerifyOTP, onLoginRedirect }: SignupScr
               </Text>
             </TouchableOpacity>
           </View>
-          
-          <TextInput
-            style={styles.inputField}
-            placeholder="Pincode"
-            placeholderTextColor="#999"
-            value={formData.pincode}
-            onChangeText={(value) => handleInputChange('pincode', value)}
-            keyboardType="numeric"
-            maxLength={6}
-          />
         </View>
         
         <TouchableOpacity 
@@ -310,21 +288,21 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     position: 'relative',
-    minHeight: 780,
+    minHeight: screenHeight*0.93,
   },
   logo: {
     position: 'absolute',
-    width: 95,
-    height: 101,
-    top: 73,
-    left: 139,
+    width: screenWidth*0.264,
+    height: screenHeight*0.126,
+    top: screenHeight*0.091,
+    left: screenWidth*0.35,
   },
   subtitleContainer: {
     position: 'absolute',
-    width: 214,
-    height: 24,
-    top: 191,
-    left: 67,
+    width: screenWidth*0.5944,
+    height: screenHeight*0.03,
+    top: screenHeight*0.235,
+    left: screenWidth*0.186,
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -332,29 +310,29 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins-Light',
     fontWeight: '300',
     fontSize: 16,
-    lineHeight: 24,
+    lineHeight: screenHeight*0.03,
     letterSpacing: 0,
     color: '#000',
     textAlign: 'center',
     includeFontPadding: false,
   },
   flagIcon: {
-    width: 24,
-    height: 24,
+    width: screenWidth*0.066,
+    height: screenHeight*0.03,
     marginLeft: 4,
   },
   mainTitleContainer: {
     position: 'absolute',
-    top: 232,
-    left: 81,
-    width: 213,
+    top: screenHeight*0.28,
+    left: screenWidth*0.2,
+    width: screenWidth*0.591,
     alignItems: 'center',
   },
   mainTitle: {
     fontFamily: 'Poppins-Medium',
     fontWeight: '500',
     fontSize: 20,
-    lineHeight: 25,
+    lineHeight: screenHeight*0.031,
     letterSpacing: 0,
     color: '#000',
     textAlign: 'center',
@@ -364,8 +342,8 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins-Medium',
     fontWeight: '500',
     fontSize: 20,
-    lineHeight: 25,
-    top: 4,
+    lineHeight: screenHeight*0.031,
+    top: screenHeight*0.005,
     letterSpacing: 0,
     color: '#000',
     textAlign: 'center',
@@ -374,11 +352,12 @@ const styles = StyleSheet.create({
   errorBox: {
     backgroundColor: '#fdecea',
     borderRadius: 8,
-    padding: 12,
-    marginHorizontal: 25,
-    marginTop: 20,
+    padding: screenHeight*0.015,
+    marginHorizontal: screenHeight*0.031,
+    marginTop: screenHeight*0.025,
     borderWidth: 1,
     borderColor: '#f5c2c7',
+    top:screenHeight*0.845
   },
   errorText: {
     color: '#b71c1c',
@@ -388,38 +367,38 @@ const styles = StyleSheet.create({
   },
   formContainer: {
     position: 'absolute',
-    top: 300,
-    left: 25,
-    width: 323,
+    top: screenHeight*0.37,
+    left: screenWidth*0.067,
+    width: screenWidth*0.87,
   },
   inputField: {
-    width: 323,
-    height: 55,
+    width: screenWidth*0.87,
+    height: screenHeight*0.062,
     borderWidth: 1,
     borderColor: '#0000001A',
     borderRadius: 8,
-    paddingHorizontal: 16,
+    paddingHorizontal: screenHeight*0.02,
     fontFamily: 'Poppins',
     fontWeight: '400',
     fontSize: 16,
     color: '#000',
     backgroundColor: '#FFF',
-    marginBottom: 15,
+    marginBottom: screenHeight*0.02,
   },
   passwordContainer: {
-    width: 323,
-    height: 55,
+    width: screenWidth*0.87,
+    height: screenHeight*0.067,
     borderWidth: 1,
     borderColor: '#0000001A',
     borderRadius: 8,
     backgroundColor: '#FFF',
-    marginBottom: 15,
+    marginBottom: screenHeight*0.02,
     flexDirection: 'row',
     alignItems: 'center',
   },
   passwordInput: {
     flex: 1,
-    height: 55,
+    height: screenHeight*0.067,
     paddingHorizontal: 16,
     fontFamily: 'Poppins',
     fontWeight: '400',
@@ -427,21 +406,21 @@ const styles = StyleSheet.create({
     color: '#000',
   },
   eyeButton: {
-    width: 44,
-    height: 44,
+    width: screenWidth*0.122,
+    height: screenHeight*0.055,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 8,
+    marginRight: screenHeight*0.008,
   },
   eyeIcon: {
     fontSize: 20,
   },
   verifyOTPButton: {
     position: 'absolute',
-    width: 332,
-    height: 50,
-    top: 650,
-    left: 22,
+    width: screenWidth*0.89,
+    height: screenHeight*0.0625,
+    top: screenHeight*0.71,
+    left: screenWidth*0.06,
     backgroundColor: '#E0E0E0',
     borderRadius: 35,
     borderWidth: 1,
@@ -458,17 +437,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 16,
     color: '#999',
-    lineHeight: 24,
+    lineHeight: screenHeight*0.03,
   },
   verifyOTPButtonTextActive: {
     color: '#000',
   },
   loginContainer: {
     position: 'absolute',
-    width: 200,
-    height: 20,
-    top: 720,
-    left: 87,
+    width: screenWidth*0.55,
+    height: screenHeight*0.025,
+    top: screenHeight*0.8,
+    left: screenWidth*0.225,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -477,14 +456,14 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins',
     fontWeight: '500',
     fontSize: 13,
-    lineHeight: 16,
+    lineHeight: screenHeight*0.02,
     color: '#000',
   },
   loginLinkText: {
     fontFamily: 'Poppins',
     fontWeight: '500',
     fontSize: 13,
-    lineHeight: 16,
+    lineHeight: screenHeight*0.02,
     color: '#FF0000',
     textDecorationLine: 'underline',
   },

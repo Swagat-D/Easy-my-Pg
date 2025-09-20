@@ -13,8 +13,7 @@ import {
 } from 'react-native';
 import AddPropertyScreen from './AddPropertyScreen';
 
-const { width: screenWidth } = Dimensions.get('window');
-
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 interface OnboardingScreenProps {
   onNextStep?: (formData: FormData) => void;
   onBack?: () => void;
@@ -22,8 +21,7 @@ interface OnboardingScreenProps {
 
 interface FormData {
   propertyName: string;
-  emailAddress: string;
-  password: string;
+  ownerName: string;
   pincode: string;
   referralCode: string;
 }
@@ -31,8 +29,7 @@ interface FormData {
 export default function OnboardingScreen({ onNextStep, onBack }: OnboardingScreenProps) {
   const [formData, setFormData] = useState<FormData>({
     propertyName: '',
-    emailAddress: '',
-    password: '',
+    ownerName: '',
     pincode: '',
     referralCode: ''
   });
@@ -49,8 +46,7 @@ export default function OnboardingScreen({ onNextStep, onBack }: OnboardingScree
 
   const isFormValid = () => {
     return formData.propertyName.trim() !== '' &&
-           formData.emailAddress.trim() !== '' &&
-           formData.password.trim() !== '' &&
+           formData.ownerName.trim() !== '' &&
            formData.pincode.trim() !== '';
   };
 
@@ -118,34 +114,12 @@ export default function OnboardingScreen({ onNextStep, onBack }: OnboardingScree
           
           <TextInput
             style={styles.inputField}
-            placeholder="Email Address"
+            placeholder="Owner Name"
             placeholderTextColor="#999"
-            value={formData.emailAddress}
-            onChangeText={(value) => handleInputChange('emailAddress', value)}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
+            value={formData.ownerName}
+            onChangeText={(value) => handleInputChange('ownerName', value)}
+            autoCapitalize="words"
           />
-          
-          <View style={styles.passwordContainer}>
-            <TextInput
-              style={styles.passwordInput}
-              placeholder="Password"
-              placeholderTextColor="#999"
-              value={formData.password}
-              onChangeText={(value) => handleInputChange('password', value)}
-              secureTextEntry={!showPassword}
-              autoCapitalize="none"
-            />
-            <TouchableOpacity 
-              style={styles.eyeButton}
-              onPress={togglePasswordVisibility}
-            >
-              <Text style={styles.eyeIcon}>
-                {showPassword ? '👁️' : '👁️‍🗨️'}
-              </Text>
-            </TouchableOpacity>
-          </View>
           
           <TextInput
             style={styles.inputField}
@@ -202,21 +176,21 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     position: 'relative',
-    minHeight: 780,
+    minHeight: screenHeight*0.975,
   },
   logo: {
     position: 'absolute',
-    width: 95,
-    height: 101,
-    top: 73,
-    left: 139,
+    width: screenWidth*0.264,
+    height: screenHeight*0.126,
+    top: screenHeight*0.091,
+    left: screenWidth*0.3861,
   },
   subtitleContainer: {
     position: 'absolute',
-    width: 214,
-    height: 24,
-    top: 191,
-    left: 67,
+    width: screenWidth*0.595,
+    height: screenHeight*0.03,
+    top: screenHeight*0.2387,
+    left: screenWidth*0.1861,
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -224,29 +198,29 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins-Light',
     fontWeight: '300',
     fontSize: 16,
-    lineHeight: 24,
+    lineHeight: screenHeight*0.03,
     letterSpacing: 0,
     color: '#000',
     textAlign: 'center',
     includeFontPadding: false,
   },
   flagIcon: {
-    width: 24,
-    height: 24,
+    width: screenWidth*0.067,
+    height: screenHeight*0.03,
     marginLeft: 4,
   },
   mainTitleContainer: {
     position: 'absolute',
-    top: 232,
-    left: 81,
-    width: 213,
+    top: screenHeight*0.29,
+    left: screenWidth*0.225,
+    width: screenWidth*0.592,
     alignItems: 'center',
   },
   mainTitle: {
     fontFamily: 'Poppins-Medium',
     fontWeight: '500',
     fontSize: 20,
-    lineHeight: 25,
+    lineHeight: screenHeight*0.031,
     letterSpacing: 0,
     color: '#000',
     textAlign: 'center',
@@ -256,8 +230,8 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins-Medium',
     fontWeight: '500',
     fontSize: 20,
-    lineHeight: 25,
-    top:4,
+    lineHeight: screenHeight*0.031,
+    top:screenHeight*0.005,
     letterSpacing: 0,
     color: '#000',
     textAlign: 'center',
@@ -265,60 +239,30 @@ const styles = StyleSheet.create({
   },
   formContainer: {
     position: 'absolute',
-    top: 315,
-    left: 25,
-    width: 323,
+    top: screenHeight*0.393,
+    left: screenWidth*0.695,
+    width: screenWidth*0.875,
   },
   inputField: {
-    width: 323,
-    height: 55,
+    width: screenWidth*0.875,
+    height: screenHeight*0.06875,
     borderWidth: 1,
     borderColor: '#0000001A',
     borderRadius: 8,
-    paddingHorizontal: 16,
+    paddingHorizontal: screenHeight*0.02,
     fontFamily: 'Poppins',
     fontWeight: '400',
     fontSize: 16,
     color: '#000',
     backgroundColor: '#FFF',
-    marginBottom: 15,
-  },
-  passwordContainer: {
-    width: 323,
-    height: 55,
-    borderWidth: 1,
-    borderColor: '#0000001A',
-    borderRadius: 8,
-    backgroundColor: '#FFF',
-    marginBottom: 15,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  passwordInput: {
-    flex: 1,
-    height: 55,
-    paddingHorizontal: 16,
-    fontFamily: 'Poppins',
-    fontWeight: '400',
-    fontSize: 16,
-    color: '#000',
-  },
-  eyeButton: {
-    width: 44,
-    height: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 8,
-  },
-  eyeIcon: {
-    fontSize: 20,
+    marginBottom: screenWidth*0.42,
   },
   nextButton: {
     position: 'absolute',
-    width: 332,
-    height: 50,
-    top: 661,
-    left: 22,
+    width: screenWidth*0.89,
+    height: screenHeight*0.0625,
+    top: screenHeight*0.826,
+    left: screenWidth*0.061,
     backgroundColor: '#E0E0E0',
     borderRadius: 35,
     borderWidth: 1,
@@ -335,17 +279,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 16,
     color: '#999',
-    lineHeight: 16,
+    lineHeight: screenHeight*0.02,
   },
   nextButtonTextActive: {
     color: '#000',
   },
   backButton: {
     position: 'absolute',
-    width: 42,
-    height: 24,
-    top: 728,
-    left: 160,
+    width: screenWidth*0.117,
+    height: screenHeight*0.03,
+    top: screenHeight*0.91,
+    left: screenWidth*0.45,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -353,7 +297,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins',
     fontWeight: '400',
     fontSize: 16,
-    lineHeight: 16,
+    lineHeight: screenHeight*0.02,
     letterSpacing: 0,
     color: '#000',
     textAlign: 'center',

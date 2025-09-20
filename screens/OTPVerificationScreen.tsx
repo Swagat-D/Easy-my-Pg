@@ -14,7 +14,8 @@ import { useAuth } from '../contexts/AuthContext';
 import RoleSelectionScreen from './RoleSelectionScreen';
 import DashboardScreen from './Dashboard';
 
-const { width: screenWidth } = Dimensions.get('window');
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+
 
 interface OTPVerificationScreenProps {
   phoneNumber: string;
@@ -39,31 +40,7 @@ export default function OTPVerificationScreen({
   const [resendTimer, setResendTimer] = useState(120);
   const { login, sendOTP, error, clearError } = useAuth();
 
-  useEffect(() => {
-    const autoFetchOTP = async () => {
-      try {
-        setIsAutoFetching(true);
-        const clipboardContent = await Clipboard.getString();
-        
-        const otpPattern = /^\d{6}$/;
-        if (otpPattern.test(clipboardContent.trim())) {
-          const otpArray = clipboardContent.trim().split('');
-          setOtp(otpArray);
-          
-           setTimeout(() => {
-            handleVerifyOTP(otpArray);
-          }, 500);
-        }
-      } catch (error) {
-        console.log('Auto-fetch failed:', error);
-      } finally {
-        setIsAutoFetching(false);
-      }
-    };
 
-    const timer = setTimeout(autoFetchOTP, 1000);
-    return () => clearTimeout(timer);
-  }, []);
 
   useEffect(() => {
     if (resendTimer > 0) {
@@ -286,17 +263,17 @@ const styles = StyleSheet.create({
   },
   logo: {
     position: 'absolute',
-    width: 95,
-    height: 101,
-    top: 151,
-    left: 140,
+    width: screenWidth*0.264,
+    height: screenHeight*0.126,
+    top: screenHeight*0.188,
+    left: screenWidth*0.39,
   },
   subtitleContainer: {
     position: 'absolute',
-    width: 214,
-    height: 24,
-    top: 269,
-    left: 78,
+    width: screenWidth*0.59,
+    height: screenHeight*0.03,
+    top: screenHeight*0.336,
+    left: screenWidth*0.21667,
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -304,36 +281,36 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins-Light',
     fontWeight: '300',
     fontSize: 16,
-    lineHeight: 24,
+    lineHeight: screenHeight*0.03,
     letterSpacing: 0,
     color: '#000',
     textAlign: 'center',
     includeFontPadding: false,
   },
   flagIcon: {
-    width: 24,
-    height: 24,
+    width: screenWidth*0.067,
+    height: screenHeight*0.03,
     marginLeft: 4,
   },
   otpTitle: {
     position: 'absolute',
-    width: 164,
-    height: 24,
-    top: 344,
-    left: 106,
+    width: screenWidth*0.42,
+    height: screenHeight*0.03,
+    top: screenHeight*0.43,
+    left: screenWidth*0.278,
     fontFamily: 'Poppins-Light',
     fontWeight: '300',
     fontSize: 16,
-    lineHeight: 16,
+    lineHeight: screenHeight*0.02,
     color: '#000',
     textAlign: 'center',
   },
   phoneNumberContainer: {
     position: 'absolute',
-    width: 140,
-    height: 24,
-    top: 377,
-    left: 117,
+    width: screenWidth*0.39,
+    height: screenHeight*0.03,
+    top: screenHeight*0.471,
+    left: screenWidth*0.3,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -342,22 +319,22 @@ const styles = StyleSheet.create({
     fontFamily: 'Montserrat',
     fontWeight: '600',
     fontSize: 15,
-    lineHeight: 15,
+    lineHeight: screenHeight*0.025,
     color: '#000',
     textAlign: 'center',
   },
   editButton: {
-    marginLeft: 8,
-    width: 16,
-    height: 16,
+    marginLeft: screenWidth*0.022,
+    width: screenWidth*0.044,
+    height: screenHeight*0.02,
   },
   editIcon: {
-    width: 16,
-    height: 16,
+    width: screenWidth*0.0444,
+    height: screenHeight*0.02,
   },
   autoFetchText: {
     position: 'absolute',
-    top: 410,
+    top: screenHeight*0.54,
     left: 0,
     right: 0,
     textAlign: 'center',
@@ -368,18 +345,18 @@ const styles = StyleSheet.create({
   },
   otpInputContainer: {
     position: 'absolute',
-    width: 316,
-    height: 50,
-    top: 433,
-    left: 30,
+    width: screenWidth*0.85,
+    height: screenHeight*0.0625,
+    top: screenHeight*0.54,
+    left: screenWidth*0.083,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 10,
+    paddingHorizontal: screenHeight*0.0125,
   },
   otpInput: {
-    width: 45,
-    height: 50,
+    width: screenWidth*0.125,
+    height: screenHeight*0.0625,
     borderWidth: 2,
     borderColor: '#0000001A',
     borderRadius: 8,
@@ -395,10 +372,10 @@ const styles = StyleSheet.create({
   },
   verifyButton: {
     position: 'absolute',
-    width: 332,
-    height: 50,
-    top: 519,
-    left: 22,
+    width: screenWidth*0.87,
+    height: screenHeight*0.0625,
+    top: screenHeight*0.63,
+    left: screenWidth*0.065,
     backgroundColor: '#E0E0E0',
     borderRadius: 35,
     justifyContent: 'center',
@@ -414,17 +391,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 16,
     color: '#999',
-    lineHeight: 16,
+    lineHeight: screenHeight*0.025,
   },
   verifyButtonTextActive: {
     color: '#000',
   },
   resendContainer: {
     position: 'absolute',
-    width: 202,
-    height: 21,
-    top: 592,
-    left: 87,
+    width: screenWidth*0.562,
+    height: screenHeight*0.026,
+    top: screenHeight*0.74,
+    left: screenWidth*0.22,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -433,7 +410,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins',
     fontWeight: '400',
     fontSize: 14,
-    lineHeight: 14,
+    lineHeight: screenHeight*0.0175,
     color: '#000',
     textAlign: 'center',
   },
@@ -441,7 +418,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins',
     fontWeight: '400',
     fontSize: 14,
-    lineHeight: 14,
+    lineHeight: screenHeight*0.0175,
     color: '#FF0000',
     textAlign: 'center',
   },

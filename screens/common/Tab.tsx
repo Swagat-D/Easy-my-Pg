@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
-const { width: screenWidth } = Dimensions.get('window');
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 interface TabItem {
   id: string;
@@ -169,22 +169,22 @@ const styles = StyleSheet.create({
   },
   container: {
     position: 'absolute',
-    bottom: 20,
-    left: (screenWidth - 343) / 2,
-    width: 343,
-    height: 61,
+    bottom: screenWidth*0.055,
+    left: (screenWidth - (screenWidth*0.953)) / 2,
+    width: screenWidth*0.953,
+    height: screenHeight*0.0763,
     alignItems: 'center',
     justifyContent: 'center',
   },
   tabBar: {
-    width: 343,
-    height: 61,
+    width: screenWidth*0.953,
+    height: screenHeight*0.0763,
     backgroundColor: '#000000',
     borderRadius: 17,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
-    paddingHorizontal: 20,
+    paddingHorizontal: screenWidth*0.055,
   },
   tabItem: {
     alignItems: 'center',
@@ -193,7 +193,6 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   tabItemActive: {
-    // Add any active state styling if needed
   },
   tabIconContainer: {
     alignItems: 'center',
@@ -201,28 +200,30 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   tabIcon: {
-  // Removed tintColor so icons show their original color
   },
   homeIcon: {
-    width: 19,
-    height: 19,
+    width: screenWidth*0.053,
+    height: screenHeight*0.024,
+    right: screenWidth*0.022,
+    marginTop: screenHeight*0.00375,
   },
   moneyIcon: {
-    width: 25,
-    height: 17,
-    right: 8,
+    width: screenWidth*0.07,
+    height: screenHeight*0.0213,
+    right: screenWidth*0.022,
+    marginTop: screenHeight*0.00375,
   },
   tenantsIcon: {
-    width: 22,
-    height: 19,
-    marginTop: 1,
+    width: screenWidth*0.061,
+    height: screenHeight*0.024,
+    marginTop: screenHeight*0.0075,
     marginLeft: 15,
   },
   propertyIcon: {
-    width: 21,
-    height: 19,
-    marginTop: 3,
-    marginLeft: 12,
+    width: screenWidth*0.0583,
+    height: screenHeight*0.024,
+    marginTop: screenHeight*0.0075,
+    marginLeft: screenWidth*0.033,
   },
   iconWithBorder: {
   // Removed border for tenants icon
@@ -231,36 +232,36 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins-Light',
     fontWeight: '300',
     fontSize: 10,
-    lineHeight: 16,
+    lineHeight: screenHeight*0.02,
     letterSpacing: 0,
     color: '#FFFFFF',
     textAlign: 'center',
-    width: 30,
-    height: 16,
+    width: screenWidth*0.083,
+    height: screenHeight*0.02,
   },
   moneyLabel: {
-    width: 33,
-    height: 16,
+    width: screenWidth*0.092,
+    height: screenHeight*0.02,
     marginTop: 2,
-    marginRight: 14,
+    marginRight: screenHeight*0.0175,
   },
   homelabel:{
-    width: 33,
-    height: 16,
-    marginTop: 0,
-    marginLeft: 2,
+    width: screenWidth*0.092,
+    height: screenHeight*0.02,
+    marginTop: 2,
+    right: screenWidth*0.022,
   },
   tenantsLabel: {
-    width: 40,
-    height: 16,
+    width: screenWidth*0.11,
+    height: screenHeight*0.02,
     marginTop: 2,
-    marginLeft: 14,
+    marginLeft: screenHeight*0.0175,
   },
   propertyLabel: {
-    width: 42,
-    height: 16,
+    width: screenWidth*0.116,
+    height: screenHeight*0.02,
     marginTop:2,
-    marginLeft: 10,
+    marginLeft: screenWidth*0.028,
   },
   tabLabelActive: {
     color: '#FFD700',
@@ -271,14 +272,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   addButton: {
-    width: 48,
-    height: 48,
+    width: screenWidth*0.13,
+    height: screenHeight*0.06,
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
   addButtonText: {
-    bottom:12,
+    bottom: screenHeight*0.015,
     fontSize: 54,
     fontWeight: 'thin',
     color: '#ffffff',

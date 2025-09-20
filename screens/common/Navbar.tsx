@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
 
-const { width: screenWidth } = Dimensions.get('window');
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 interface NavbarProps {
   userName?: string;
@@ -105,23 +105,23 @@ export default function Navbar({
 const styles = StyleSheet.create({
   container: {
     width: screenWidth,
-    height: 85,
-    top:34,
+    height: screenHeight*0.106,
+    top:screenHeight*0.0425,
     backgroundColor: '#fff',
     position: 'relative',
   },
   
   profilePhotoContainer: {
     position: 'absolute',
-    width: 50,
-    height: 50,
-    top: 11,
-    left: 18,
+    width: screenHeight*0.139,
+    height: screenWidth*0.0625,
+    top: screenHeight*0.0138,
+    left: screenWidth*0.05,
   },
   
   profilePhotoCircle: {
-    width: 50,
-    height: 50,
+    width: screenWidth*0.139,
+    height: screenHeight*0.0625,
     borderRadius: 25,
     overflow: 'hidden',
     justifyContent: 'center',
@@ -130,14 +130,14 @@ const styles = StyleSheet.create({
   },
   
   profileImage: {
-    width: 50,
-    height: 50,
+    width: screenWidth*0.139,
+    height: screenHeight*0.0625,
     borderRadius: 25,
   },
   
   profileImageDefault: {
-    width: 50,
-    height: 50,
+    width: screenWidth*0.139,
+    height: screenHeight*0.0625,
     position: 'absolute',
     top: 1.25,
     left: 0.25,
@@ -146,70 +146,70 @@ const styles = StyleSheet.create({
   // Text Styles
   welcomeText: {
     position: 'absolute',
-    width: 123,
-    height: 17,
-    top: 19,
-    left: 78,
+    width: screenWidth*0.342,
+    height: screenHeight*0.021,
+    top: screenHeight*0.024,
+    left: screenWidth*0.209,
     fontFamily: 'Montserrat-Regular',
     fontWeight: '400',
     fontSize: 12,
-    lineHeight: 12,
+    lineHeight: screenHeight*0.015,
     letterSpacing: 0,
     color: '#E74D3C',
   },
   
   propertyText: {
     position: 'absolute',
-    width: 106,
-    height: 18,
-    top: 35,
-    left: 78,
+    width: screenWidth*0.295,
+    height: screenHeight*0.0225,
+    top: screenHeight*0.0438,
+    left: screenWidth*0.217,
     fontFamily: 'Montserrat-Medium',
     fontWeight: '500',
     fontSize: 15,
-    lineHeight: 15,
+    lineHeight: screenHeight*0.019,
     letterSpacing: 0,
     color: '#000',
   },
   dropdownButton: {
-    width: 11.968,
-    height: 6,
-    top: 31,
-    left: 178,
+    width: screenWidth*0.033,
+    height: screenHeight*0.0075,
+    top: screenHeight*0.039,
+    left: screenWidth*0.5,
   },
   
   dropdownIcon: {
-    width: 11.968,
-    height: 24,
+    width: screenWidth*0.033,
+    height: screenHeight*0.03,
   },
   
   supportContainer: {
     position: 'absolute',
-    width: 50,
-    height: 50,
+    width: screenWidth*0.14,
+    height: screenHeight*0.0625,
     top: 0,
     right: 0,
   },
   supportIconCircle: {
     position: 'absolute',
-    width: 25.93,
-    height: 26,
-    top: 23,
-    left: 286.23,
+    width: screenWidth*0.072,
+    height: screenHeight*0.0325,
+    top: screenHeight*0.029,
+    left: screenWidth*0.795,
   },
   supportIcon: {
-    width: 18,
-    height: 18,
+    width: screenWidth*0.05,
+    height: screenHeight*0.0225,
     position: 'absolute',
-    top: 27,
-    left: 253,
+    top: screenHeight*0.03375,
+    left: screenWidth*0.703,
   },
   supportCircleBorder: {
     position: 'absolute',
-    width: 25.93,
-    height: 26,
-    top: 23,
-    left: 286.23,
+    width: screenWidth*0.072,
+    height: screenHeight*0.0325,
+    top: screenHeight*0.029,
+    left: screenWidth*0.795,
     borderRadius: 13,
     borderWidth: 1.5,
     borderColor: '#000000',
@@ -217,18 +217,18 @@ const styles = StyleSheet.create({
   },
   questionIcon: {
     position: 'absolute',
-    width: 8.637,
-    height: 14.256,
-    top: 12,
-    left: 15,
+    width: screenWidth*0.024,
+    height: screenHeight*0.0179,
+    top: screenHeight*0.015,
+    left: screenWidth*0.42,
   },
   
   questionCircleBorder: {
     position: 'absolute',
-    width: 26,
-    height: 26,
-    top: 3,
-    left: 3,
+    width: screenWidth*0.072,
+    height: screenHeight*0.0325,
+    top: screenHeight*0.00375,
+    left: screenWidth*0.0084,
     borderRadius: 13,
     borderWidth: 1.5,
     borderColor: '#000000',
@@ -237,8 +237,8 @@ const styles = StyleSheet.create({
 
   dropdownMenu: {
     position: 'absolute',
-    top: 65,
-    left: 18,
+    top: screenHeight*0.0813,
+    left: screenWidth*0.05,
     backgroundColor: '#fff',
     borderRadius: 6,
     padding: 8,
@@ -250,8 +250,8 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   dropdownItem: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingVertical: screenHeight*0.01,
+    paddingHorizontal: screenWidth*0.033,
   },
   dropdownText: {
     fontSize: 14,

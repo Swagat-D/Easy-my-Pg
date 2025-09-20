@@ -10,8 +10,7 @@ import {
 import OnboardingScreen from './OnboardingScreen';
 import AddPropertyScreen from './AddPropertyScreen';
 
-const { width: screenWidth } = Dimensions.get('window');
-
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 interface RoleSelectionScreenProps {
   onNextStep?: (selectedRole: string) => void;
 }
@@ -70,7 +69,6 @@ export default function RoleSelectionScreen({ onNextStep }: RoleSelectionScreenP
   if (showOnboarding) {
     return (
       <OnboardingScreen 
-        onNextStep={handleOnboarded} 
         onBack={handleBackFromOnboarding}
       />
     );
@@ -153,17 +151,17 @@ const styles = StyleSheet.create({
   },
   logo: {
     position: 'absolute',
-    width: 95,
-    height: 101,
-    top: 152,
-    left: 139,
+    width: screenWidth*0.264,
+    height: screenHeight*0.12625,
+    top: screenHeight*0.19,
+    left: screenWidth*0.3862,
   },
   subtitleContainer: {
     position: 'absolute',
-    width: 214,
-    height: 24,
-    top: 270,
-    left: 67,
+    width: screenWidth*0.595,
+    height: screenHeight*0.03,
+    top: screenHeight*0.3375,
+    left: screenWidth*0.1862,
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -171,23 +169,23 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins-Light',
     fontWeight: '300',
     fontSize: 16,
-    lineHeight: 24,
+    lineHeight: screenHeight*0.03,
     letterSpacing: 0,
     color: '#000',
     textAlign: 'center',
     includeFontPadding: false,
   },
   flagIcon: {
-    width: 24,
-    height: 24,
-    marginLeft: 4,
+    width: screenWidth*0.067,
+    height: screenHeight*0.03,
+    marginLeft: screenWidth*0.011,
   },
   roleSelectButton: {
     position: 'absolute',
-    width: 323,
-    height: 54,
-    top: 342,
-    left: 26,
+    width: screenWidth*0.875,
+    height: screenHeight*0.0675,
+    top: screenHeight*0.43,
+    left: screenWidth*0.072,
     backgroundColor: '#FFF',
     borderWidth: 2,
     borderColor: '#0000001A',
@@ -201,12 +199,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     letterSpacing:0,
     flex: 1,
-    left: 40
+    left: screenWidth*0.12
   },
   dropdownArrow: {
-    width: 22,
-    height: 24,
-    right:16,
+    width: screenWidth*0.062,
+    height: screenHeight*0.03,
+    right:screenWidth*0.045,
     tintColor: '#000',
   },
   dropdownArrowRotated: {
@@ -214,10 +212,10 @@ const styles = StyleSheet.create({
   },
   dropdownContainer: {
     position: 'absolute',
-    width: 323,
-    height: 156,
-    top: 398,
-    left: 26,
+    width: screenWidth*0.875,
+    height: screenHeight*0.195,
+    top: screenHeight*0.4975,
+    left: screenWidth*0.072,
     backgroundColor: '#FFF',
     borderRadius: 8,
     shadowColor: '#000',
@@ -231,8 +229,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   dropdownItem: {
-    height: 52,
-    paddingHorizontal: 16,
+    height: screenHeight*0.065,
+    paddingHorizontal: screenWidth*0.045,
     justifyContent: 'center',
     borderBottomWidth: 1,
     borderBottomColor: '#F0F0F0',
@@ -248,10 +246,10 @@ const styles = StyleSheet.create({
   },
   nextButton: {
     position: 'absolute',
-    width: 332,
-    height: 50,
-    top: 603,
-    left: 22,
+    width: screenWidth*0.92,
+    height: screenHeight*0.0625,
+    top: screenHeight*0.754,
+    left: screenWidth*0.06,
     backgroundColor: '#E0E0E0',
     borderRadius: 35,
     borderWidth: 1,
@@ -268,7 +266,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 16,
     color: '#999',
-    lineHeight: 24,
+    lineHeight: screenHeight*0.03,
   },
   nextButtonTextActive: {
     color: '#000',

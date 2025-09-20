@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
   },
 
   searchFilterContainer: {
-    width: 290,
+    width: screenWidth*0.8055,
     flexDirection: 'row',
     alignItems: 'center',
     marginHorizontal: 17,
