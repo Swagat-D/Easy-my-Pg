@@ -15,7 +15,7 @@ import Navbar from './common/Navbar';
 import BottomTabNavigator from './common/Tab';
 import DashboardScreen from './Dashboard';
 
-const { width: screenWidth } = Dimensions.get('window');
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 interface MainPropertyScreenProps {
   userName?: string;
@@ -41,6 +41,7 @@ export default function MainPropertyScreen({
     '3rd Floor',
     '4th Floor'
   ];
+  
 
   const handleFloorSelect = (floor: string) => {
     setSelectedFloor(floor);
@@ -172,40 +173,40 @@ export default function MainPropertyScreen({
         </View>
 
         <View style={styles.floorNavigationSection}>
-  {/* Fixed Floor View Button */}
-  <TouchableOpacity style={styles.fixedFloorButton}>
-    <Text style={styles.fixedFloorButtonText}>Floor View</Text>
-  </TouchableOpacity>
+        {/* Fixed Floor View Button */}
+        <TouchableOpacity style={styles.fixedFloorButton}>
+          <Text style={styles.fixedFloorButtonText}>Floor View</Text>
+        </TouchableOpacity>
 
-  {/* Vertical Divider Line */}
-  <View style={styles.verticalDivider} />
+        {/* Vertical Divider Line */}
+        <View style={styles.verticalDivider} />
 
-  {/* Scrollable Floor Buttons Container */}
-  <ScrollView
-    horizontal
-    showsHorizontalScrollIndicator={false}
-    style={styles.floorScrollContainer}
-    contentContainerStyle={styles.floorScrollContent}
-  >
-    {floorsData.map((floor, index) => (
-      <TouchableOpacity
-        key={index}
-        style={[
-          styles.floorScrollButton,
-          selectedFloor === floor && styles.selectedFloorButton
-        ]}
-        onPress={() => handleFloorSelect(floor)}
-      >
-        <Text style={[
-          styles.floorScrollButtonText,
-          selectedFloor === floor && styles.selectedFloorButtonText
-        ]}>
-          {floor}
-        </Text>
-      </TouchableOpacity>
-    ))}
-  </ScrollView>
-</View>
+        {/* Scrollable Floor Buttons Container */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.floorScrollContainer}
+          contentContainerStyle={styles.floorScrollContent}
+        >
+          {floorsData.map((floor, index) => (
+            <TouchableOpacity
+              key={index}
+              style={[
+                styles.floorScrollButton,
+                selectedFloor === floor && styles.selectedFloorButton
+              ]}
+              onPress={() => handleFloorSelect(floor)}
+            >
+              <Text style={[
+                styles.floorScrollButtonText,
+                selectedFloor === floor && styles.selectedFloorButtonText
+              ]}>
+                {floor}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
 
         {/* Spacer for content */}
         <View style={styles.contentSpacer} />
@@ -232,21 +233,21 @@ const styles = StyleSheet.create({
   },
 
   searchFilterContainer: {
-    width: screenWidth*0.8055,
+    width: screenWidth*0.78,
     flexDirection: 'row',
     alignItems: 'center',
-    marginHorizontal: 17,
-    marginTop: 23,
-    marginBottom: 12,
-    height: 44,
+    marginHorizontal: screenWidth*0.0472,
+    marginTop: screenHeight*0.02875,
+    marginBottom: screenHeight*0.015,
+    height: screenHeight*0.055,
     borderRadius: 22,
     borderWidth: 0.75,
     borderColor: '#000000',
     backgroundColor: '#FFFFFF',
   },
     searchContainer: {
-    width: 288.8,
-    height: 44.49,
+    width: screenWidth*0.78,
+    height: screenHeight*0.057,
     backgroundColor: '#F2F2F31A',
     borderWidth: 0.5,
     borderColor: '#D8D8ED',
@@ -256,17 +257,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
     searchIconContainer: {
-    width: 34,
-    height: 34,
-    left: 6,
+    width: screenWidth*0.094,
+    height: screenHeight*0.0425,
+    left: screenWidth*0.0167,
     borderRadius: 19,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor:'#000'
   },
   searchIcon: {
-    width: 25,
-    height: 25,
+    width: screenWidth*0.0695,
+    height: screenHeight*0.0312,
     tintColor: '#fff',
   },
   searchInput: {
@@ -278,9 +279,9 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   filterContainer: {
-    width: 43.337,
-    height: 44,
-    left: 298,
+    width: screenWidth*0.12,
+    height: screenHeight*0.055,
+    left: screenWidth*0.8,
     borderWidth: 0.75,
     borderColor: '#000',
     borderRadius: 22,
@@ -289,33 +290,32 @@ const styles = StyleSheet.create({
     position: 'absolute',
   },
   filterIcon: {
-    width: 18,
-    height: 18,
+    width: screenWidth*0.05,
+    height: screenHeight*0.0225,
     tintColor: '#000',
   },
   statsSection: {
-    width: 330,
-    height: 95,
-    top: 12,
-    left: 18,
-    marginBottom: 50,
+    width: screenWidth*0.916,
+    height: screenHeight*0.11875,
+    top: screenHeight*0.015,
+    left: screenWidth*0.05,
+    marginBottom: screenHeight*0.00725,
   },
   statsScrollView: {
-    marginHorizontal: -20,
+    marginHorizontal: -(screenWidth*0.055),
   },
   statsScrollContainer: {
-    paddingHorizontal: 20,
-    paddingRight: 0,
+    paddingHorizontal: screenWidth*0.055,
   },
   statsCardDark: {
-    width: 84,
-    height: 78,
+    width: screenWidth*0.233,
+    height: screenHeight*0.0975,
     backgroundColor: '#242424',
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#FFF',
-    padding: 16,
-    marginRight: 12,
+    padding: screenHeight*0.02,
+    marginRight: screenWidth*0.033,
     shadowColor: '#171A1F',
     shadowOffset: {
       width: 0,
@@ -327,14 +327,14 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   statsCardLight: {
-    width: 84,
-    height: 78,
+    width: screenWidth*0.233,
+    height: screenHeight*0.0975,
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#EAE7E7',
-    padding: 16,
-    marginRight: 12,
+    padding: screenHeight*0.02,
+    marginRight: screenWidth*0.033,
     shadowColor: '#171A1F',
     shadowOffset: {
       width: 0,
@@ -349,14 +349,14 @@ const styles = StyleSheet.create({
     fontFamily: 'Roboto-Medium',
     fontWeight: '500',
     fontSize: 14,
-    lineHeight: 20,
+    lineHeight: screenHeight*0.025,
     letterSpacing: 0,
     textAlign: 'center',
     color: '#FFFFFF',
-    width: 17,
-    height: 20,
-    top: 17,
-    left: 33,
+    width: screenWidth*0.0472,
+    height: screenHeight*0.025,
+    top: screenHeight*0.02125,
+    left: screenWidth*0.0916,
     position: 'absolute',
   },
   statsNumberDark: {
@@ -364,45 +364,44 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#FFD600',
     fontFamily: 'Inter-Bold',
-    lineHeight: 32,
+    lineHeight: screenHeight*0.04,
     width:'100%',
-    height:28,
-    top:20,
+    height: screenHeight*0.035,
+    top: screenHeight*0.025,
     textAlign: 'center',
   },
   statsTextLight: {
     fontFamily: 'Roboto-Medium',
     fontWeight: '500',
     fontSize: 14,
-    lineHeight: 20,
+    lineHeight: screenHeight*0.025,
     letterSpacing: 0,
     textAlign: 'center',
     color: '#000000',
-    width: 72,
-    height: 20,
-    top: 17,
-    left:5,
+    width: screenWidth*0.2,
+    height: screenHeight*0.025,
+    top: screenHeight*0.02125,
+    left:screenWidth*0.0139,
     position: 'absolute',
   },
   statsNumberLight: {
     fontSize: 22,
     fontWeight: '700',
     fontFamily: 'Inter-Bold',
-    lineHeight: 32,
+    lineHeight: screenHeight*0.04,
     width:'100%',
-    height:28,
-    top:20,
+    height:screenHeight*0.035,
+    top:screenHeight*0.025,
     textAlign: 'center',
   },
   contentSpacer: {
-    height: 200,
+    height: screenHeight*0.2,
   },
   floorNavigationSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginHorizontal: 20,
-    marginVertical: 12,
-    height: 40,
+    height: 42,
+    width: screenWidth
   },
   fixedFloorButton: {
     width: 86,
@@ -411,7 +410,6 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     borderWidth: 1,
     borderColor: '#FFFFFF',
-    top: 6,
     left: 19,
     alignItems: 'center',
     justifyContent: 'center',
@@ -444,7 +442,7 @@ const styles = StyleSheet.create({
     top: 6,
   },
   floorScrollContainer: {
-    width: 237,
+    width: 260,
     height: 28,
     top: 6,
     left: 121,
