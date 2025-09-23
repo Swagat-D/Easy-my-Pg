@@ -144,10 +144,10 @@ const styles = StyleSheet.create({
     paddingTop: screenHeight*0.0425,
   },
   card: {
-    width: screenWidth*0.941,
+    width: screenWidth*0.925,
     height: screenHeight*0.237,
     top:screenHeight*0.141,
-    left:screenWidth*0.011,
+    left:-(screenWidth*0.011),
     backgroundColor: '#fff',
     borderRadius: 16,
     borderWidth: 1,
@@ -179,13 +179,13 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     position: 'absolute',
-    top: screenWidth*0.075,
+    top: screenWidth*0.15,
     left: screenWidth*0.055,
     width: screenWidth*0.655,
     height: screenHeight*0.0625,
     fontFamily: 'Montserrat-Regular',
     fontWeight: '400',
-    fontSize: 16,
+    fontSize: 18,
     lineHeight: screenHeight*0.031,
     letterSpacing: 0,
     color: '#5A6066',
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: screenHeight*0.05,
+    paddingHorizontal: screenHeight*0.005,
     // Shadow for iOS
     shadowColor: '#171A1F',
     shadowOffset: {
@@ -221,6 +221,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#000',
     flex: 1,
+    textAlign: 'center',
+    top: 1,
   },
   arrowIcon: {
     width: screenWidth*0.053,
@@ -229,7 +231,7 @@ const styles = StyleSheet.create({
   buildingImageContainer: {
     position: 'absolute',
     top: screenHeight*0.085,
-    left: screenWidth*0.633,
+    left: screenWidth*0.625,
     width: screenWidth*0.259,
     height: screenHeight*0.11,
   },

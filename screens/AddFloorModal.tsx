@@ -56,7 +56,7 @@ export default function AddFloorModal({
       prevFloors.map(floor => ({
         ...floor,
         isAdded: existingFloors.includes(floor.id),
-        isSelected: existingFloors.includes(floor.id)
+        isSelected: floor.isSelected || existingFloors.includes(floor.id)
       }))
     );
   }, [existingFloors]);
@@ -188,12 +188,12 @@ const styles = StyleSheet.create({
   header: {
     position: 'relative',
     alignItems: 'center',
-    marginBottom: screenHeight*0.055,
+    marginBottom: screenHeight*0.015,
   },
   closeButton: {
     position: 'absolute',
-    top: screenHeight*0.034,
-    left: screenWidth*0.5, 
+    top: screenHeight*0.01,
+    left: screenWidth*0.45, 
     width: screenWidth*0.067,
     height: screenHeight*0.03,
     zIndex: 10,
@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: screenHeight*0.8625,
+    marginTop: screenHeight*0.0525,
     marginHorizontal: screenHeight*0.01,
     // Shadow
     shadowColor: '#171A1F',
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: screenHeight*0.02,
   },
   floorsContainer: {
-    paddingBottom: screenHeight*0.0625,
+    paddingBottom: screenHeight*0.0025,
   },
   floorItem: {
     flexDirection: 'row',

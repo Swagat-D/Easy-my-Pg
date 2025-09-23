@@ -41,7 +41,125 @@ export default function MainPropertyScreen({
     '3rd Floor',
     '4th Floor'
   ];
-  
+
+  // Room data structure
+  const roomsData = {
+    'Ground Floor': [
+      {
+        id: 'room_101',
+        roomNumber: 'Room 101',
+        status: 'Available', // 'Available' | 'Full'
+        bedCount: 6,
+        rentDue: 2,
+        underNotice: 1,
+        activeTicket: 5,
+        beds: [
+          { id: 'bed1', available: true },
+          { id: 'bed2', available: true },
+          { id: 'bed3', available: false },
+          { id: 'bed4', available: false },
+          { id: 'bed5', available: true },
+          { id: 'bed6', available: true }
+        ]
+      },
+      {
+        id: 'room_102',
+        roomNumber: 'Room 102',
+        status: 'Full',
+        bedCount: 9,
+        rentDue: 2,
+        underNotice: 1,
+        activeTicket: 5,
+        beds: [
+          { id: 'bed1', available: false },
+          { id: 'bed2', available: false },
+          { id: 'bed3', available: false },
+          { id: 'bed4', available: false },
+          { id: 'bed5', available: false },
+          { id: 'bed6', available: false },
+          { id: 'bed7', available: false },
+          { id: 'bed8', available: false },
+          { id: 'bed9', available: false }
+        ]
+      }
+    ],
+    '1st Floor': [
+      {
+        id: 'room_201',
+        roomNumber: 'Room 201',
+        status: 'Available',
+        bedCount: 6,
+        rentDue: 1,
+        underNotice: 0,
+        activeTicket: 3,
+        beds: [
+          { id: 'bed1', available: true },
+          { id: 'bed2', available: true },
+          { id: 'bed3', available: true },
+          { id: 'bed4', available: false },
+          { id: 'bed5', available: true },
+          { id: 'bed6', available: true }
+        ]
+      }
+    ],
+    '2nd Floor': [
+      {
+        id: 'room_301',
+        roomNumber: 'Room 301',
+        status: 'Full',
+        bedCount: 6,
+        rentDue: 3,
+        underNotice: 2,
+        activeTicket: 4,
+        beds: [
+          { id: 'bed1', available: false },
+          { id: 'bed2', available: false },
+          { id: 'bed3', available: false },
+          { id: 'bed4', available: false },
+          { id: 'bed5', available: false },
+          { id: 'bed6', available: false }
+        ]
+      }
+    ],
+    '3rd Floor': [
+      {
+        id: 'room_401',
+        roomNumber: 'Room 401',
+        status: 'Available',
+        bedCount: 6,
+        rentDue: 0,
+        underNotice: 0,
+        activeTicket: 1,
+        beds: [
+          { id: 'bed1', available: true },
+          { id: 'bed2', available: true },
+          { id: 'bed3', available: true },
+          { id: 'bed4', available: true },
+          { id: 'bed5', available: true },
+          { id: 'bed6', available: true }
+        ]
+      }
+    ],
+    '4th Floor': [
+      {
+        id: 'room_501',
+        roomNumber: 'Room 501',
+        status: 'Available',
+        bedCount: 6,
+        rentDue: 1,
+        underNotice: 1,
+        activeTicket: 2,
+        beds: [
+          { id: 'bed1', available: true },
+          { id: 'bed2', available: false },
+          { id: 'bed3', available: true },
+          { id: 'bed4', available: true },
+          { id: 'bed5', available: false },
+          { id: 'bed6', available: true }
+        ]
+      }
+    ]
+  };
 
   const handleFloorSelect = (floor: string) => {
     setSelectedFloor(floor);
@@ -77,6 +195,132 @@ export default function MainPropertyScreen({
         setActiveTab('dashboard');
       }
     };
+
+  const handleAddTenant = (roomId: string) => {
+    console.log('Add tenant for room:', roomId);
+  };
+
+  const handleSharePress = (roomId: string) => {
+    console.log('Share room:', roomId);
+  };
+
+  const renderRoomCard = (room: any) => {
+    const statusColor = room.status === 'Available' ? '#4CAF50' : '#F44336';
+    const statusBgColor = room.status === 'Available' ? '#E8F5E8' : '#FFEBEE';
+    
+    return (
+      <View key={room.id} style={roomCardStyles.container}>
+        {/* Room Header */}
+        <View style={roomCardStyles.header}>
+          {/* Room Icon */}
+          <View style={roomCardStyles.roomIcon}>
+            <Image
+              source={require('../assets/icons/door-open.png')}
+              style={roomCardStyles.doorIcon}
+              resizeMode="contain"
+            />
+          </View>
+          
+          {/* Room Number */}
+          <Text style={roomCardStyles.roomNumber}>{room.roomNumber}</Text>
+          
+          {/* Status Badge */}
+          <View style={[roomCardStyles.statusBadge, { backgroundColor: statusBgColor }]}>
+            <Text style={[roomCardStyles.statusText, { color: statusColor }]}>
+              {room.status}
+            </Text>
+          </View>
+          
+          {/* Share Button */}
+          <TouchableOpacity 
+            style={roomCardStyles.shareButton}
+            onPress={() => handleSharePress(room.id)}
+          >
+            <Image
+              source={require('../assets/icons/share.png')}
+              style={roomCardStyles.shareIcon}
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
+        </View>
+        
+        {/* Divider Line */}
+        <View style={roomCardStyles.dividerLine} />
+        
+        {/* Room Details */}
+        <View style={roomCardStyles.detailsContainer}>
+          {/* Left Column */}
+          <View style={roomCardStyles.leftColumn}>
+            <View style={roomCardStyles.detailRow}>
+              <Image
+                source={require('../assets/icons/bed.png')}
+                style={roomCardStyles.detailIcon}
+                resizeMode="contain"
+              />
+              <Text style={roomCardStyles.detailLabel}>Bed: </Text>
+              <Text style={roomCardStyles.detailValue}>{room.bedCount}</Text>
+            </View>
+            
+            <View style={roomCardStyles.detailRow}>
+              <Image
+                source={require('../assets/icons/briefcase.png')}
+                style={roomCardStyles.detailIcon}
+                resizeMode="contain"
+              />
+              <Text style={roomCardStyles.detailLabel}>Under Notice: </Text>
+              <Text style={roomCardStyles.detailValue}>{room.underNotice}</Text>
+            </View>
+          </View>
+          
+          {/* Right Column */}
+          <View style={roomCardStyles.rightColumn}>
+            <View style={roomCardStyles.detailRow}>
+              <Image
+                source={require('../assets/icons/wallet.png')}
+                style={roomCardStyles.detailIcon}
+                resizeMode="contain"
+              />
+              <Text style={roomCardStyles.detailLabel}>Rent Due: </Text>
+              <Text style={roomCardStyles.detailValue}>{room.rentDue}</Text>
+            </View>
+            
+            <View style={roomCardStyles.detailRow}>
+              <Image
+                source={require('../assets/icons/ticket.png')}
+                style={roomCardStyles.detailIcon}
+                resizeMode="contain"
+              />
+              <Text style={roomCardStyles.detailLabel}>Active Ticket: </Text>
+              <Text style={roomCardStyles.detailValue}>{room.activeTicket}</Text>
+            </View>
+          </View>
+        </View>
+        
+        {/* Beds Section */}
+        <View style={roomCardStyles.bedsContainer}>
+          {room.beds.map((bed: any, index: number) => (
+            <Image
+              key={bed.id}
+              source={bed.available 
+                ? require('../assets/icons/green.png') 
+                : require('../assets/icons/red.png')
+              }
+              style={roomCardStyles.bedIcon}
+              resizeMode="contain"
+            />
+          ))}
+        </View>
+        
+        {/* Add Tenant Button */}
+        <TouchableOpacity 
+          style={roomCardStyles.addTenantButton}
+          onPress={() => handleAddTenant(room.id)}
+        >
+          <Text style={roomCardStyles.addTenantText}>ADD TENANT</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
   
     if (activeTab === 'dashboard') {
       return (
@@ -194,19 +438,24 @@ export default function MainPropertyScreen({
               style={[
                 styles.floorScrollButton,
                 selectedFloor === floor && styles.selectedFloorButton
-              ]}
-              onPress={() => handleFloorSelect(floor)}
-            >
-              <Text style={[
-                styles.floorScrollButtonText,
-                selectedFloor === floor && styles.selectedFloorButtonText
-              ]}>
-                {floor}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
+                ]}
+                onPress={() => handleFloorSelect(floor)}
+              >
+                <Text style={[
+                  styles.floorScrollButtonText,
+                  selectedFloor === floor && styles.selectedFloorButtonText
+                ]}>
+                  {floor}
+               </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
+        {/* Rooms Section */}
+        <View style={roomCardStyles.roomsSection}>
+        {roomsData[selectedFloor as keyof typeof roomsData]?.map((room: any) => renderRoomCard(room))}
+        </View>
 
         {/* Spacer for content */}
         <View style={styles.contentSpacer} />
@@ -488,5 +737,159 @@ const styles = StyleSheet.create({
   },
   selectedFloorButtonText: {
     fontWeight: '600',
+  },
+});
+
+// Room Card Styles
+const roomCardStyles = StyleSheet.create({
+  roomsSection: {
+    paddingHorizontal: screenWidth * 0.046,
+    paddingTop: screenHeight * 0.025,
+    paddingBottom: screenHeight * 0.02,
+  },
+  container: {
+    width: 339,
+    height: 171,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#DEE1E6',
+    marginBottom: screenHeight * 0.02,
+    shadowColor: '#171A1F',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.07,
+    shadowRadius: 1,
+    elevation: 2,
+    position: 'relative',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingTop: 11,
+    paddingHorizontal: 22,
+    height: 51,
+  },
+  roomIcon: {
+    width: 30,
+    height: 30,
+    backgroundColor: '#FFD604',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  doorIcon: {
+    width: 16,
+    height: 16,
+    tintColor: '#000000',
+  },
+  roomNumber: {
+    fontFamily: 'Roboto-Medium',
+    fontWeight: '600',
+    fontSize: 16,
+    color: '#000000',
+    marginLeft: 12,
+    flex: 1,
+  },
+  statusBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    marginRight: 12,
+  },
+  statusText: {
+    fontFamily: 'Roboto-Medium',
+    fontWeight: '500',
+    fontSize: 12,
+  },
+  shareButton: {
+    width: 21,
+    height: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  shareIcon: {
+    width: 18,
+    height: 16,
+    tintColor: '#666666',
+  },
+  dividerLine: {
+    width: 248,
+    height: 1,
+    backgroundColor: '#EEECEC',
+    marginLeft: 45,
+    marginTop: 0,
+  },
+  detailsContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 21,
+    paddingTop: 16,
+    justifyContent: 'space-between',
+  },
+  leftColumn: {
+    flex: 1,
+  },
+  rightColumn: {
+    flex: 1,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  detailIcon: {
+    width: 12,
+    height: 12,
+    tintColor: '#666666',
+    marginRight: 6,
+  },
+  detailLabel: {
+    fontFamily: 'Roboto-Regular',
+    fontSize: 11,
+    color: '#666666',
+  },
+  detailValue: {
+    fontFamily: 'Roboto-Medium',
+    fontWeight: '600',
+    fontSize: 11,
+    color: '#000000',
+  },
+  bedsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 21,
+    paddingTop: 8,
+    width: 92,
+    height: 20,
+  },
+  bedIcon: {
+    width: 12,
+    height: 12,
+    marginRight: 4,
+  },
+  emoji: {
+    fontSize: 14,
+    marginLeft: 4,
+  },
+  addTenantButton: {
+    width: 123,
+    height: 35,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#313030',
+    borderRadius: 4,
+    position: 'absolute',
+    top: 121,
+    right: 21,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addTenantText: {
+    fontFamily: 'Roboto-Medium',
+    fontWeight: '500',
+    fontSize: 10,
+    color: '#000000',
+    letterSpacing: 0.5,
   },
 });

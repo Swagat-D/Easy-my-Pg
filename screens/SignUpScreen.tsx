@@ -50,7 +50,7 @@ export default function SignupScreen({ onVerifyOTP, onLoginRedirect }: SignupScr
       ...prev,
       [field]: value
     }));
-    setFormError(null); // clear error when user types
+    setFormError(null);
   };
 
   const validateEmail = (email: string): boolean => {

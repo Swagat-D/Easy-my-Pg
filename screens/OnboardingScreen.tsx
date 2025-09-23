@@ -11,7 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform
 } from 'react-native';
-import AddPropertyScreen from './AddPropertyScreen';
+import PropertyTypeScreen from './PropertyTypeScreen';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 interface OnboardingScreenProps {
@@ -51,15 +51,14 @@ export default function OnboardingScreen({ onNextStep, onBack }: OnboardingScree
   };
 
   if (showAddProperty){
-    return <AddPropertyScreen />
+    return <PropertyTypeScreen />
   }
 
   const handleNextStep = () => {
-    if (isFormValid() && onNextStep) {
-      onNextStep(formData);
-      setShowAddProperty(true);
-    }
-  };
+  if (isFormValid()) {
+    setShowAddProperty(true);
+  }
+};
 
   const handleBack = () => {
     if (onBack) {
@@ -240,7 +239,7 @@ const styles = StyleSheet.create({
   formContainer: {
     position: 'absolute',
     top: screenHeight*0.393,
-    left: screenWidth*0.695,
+    left: screenWidth*0.0595,
     width: screenWidth*0.875,
   },
   inputField: {
@@ -255,7 +254,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#000',
     backgroundColor: '#FFF',
-    marginBottom: screenWidth*0.42,
+    marginBottom: screenWidth*0.042,
   },
   nextButton: {
     position: 'absolute',

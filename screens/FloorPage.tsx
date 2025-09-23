@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
   },
   backArrowImage: {
     width: screenWidth*0.067,
-    height: screenHeight*0.03,
+    height: screenHeight*0.0275,
     left: screenWidth*0.028,
     transform: [{ rotate: '180deg' }],
   },
@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#000',
     textAlign: 'center',
-    right: screenWidth*0.195,
+    right: screenWidth*0.17,
     fontFamily: 'Montserrat-SemiBold',
   },
   scrollContent: {
@@ -310,7 +310,7 @@ const styles = StyleSheet.create({
   },
   radioButtonInnerUnselected: {
     width: screenWidth*0.0361,
-    height: screenHeight*0.1625,
+    height: screenHeight*0.01625,
     borderRadius: 6.5,
     borderWidth: 0.8,
     backgroundColor: '#FFFFFF',

@@ -350,10 +350,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#000',
     fontFamily: 'Montserrat-SemiBold',
-    width: screenWidth*0.1,
-    height: screenHeight*0.03,
+    width: screenWidth*0.11,
     textAlignVertical: 'center',
     marginLeft: screenWidth*0.025,
+    lineHeight: screenHeight*0.03,
   },
   unitsContainer: {
     backgroundColor: '#FFF4B8',
@@ -432,7 +432,7 @@ const styles = StyleSheet.create({
   bottomButtonContainer: {
     paddingHorizontal: screenWidth*0.055,
     paddingBottom: screenWidth*0.1,
-    paddingTop: screenHeight*0.025,
+    paddingTop: screenHeight*0.015,
   },
   addUnitsButton: {
     width: screenWidth*0.92,
