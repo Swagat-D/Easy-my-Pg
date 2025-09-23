@@ -479,6 +479,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+    top: (screenHeight*0.0177),
   },
 
   searchFilterContainer: {
@@ -486,7 +487,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginHorizontal: screenWidth*0.0472,
-    marginTop: screenHeight*0.02875,
+    marginTop: screenHeight*0.013,
     marginBottom: screenHeight*0.015,
     height: screenHeight*0.055,
     borderRadius: 22,
@@ -539,8 +540,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
   },
   filterIcon: {
-    width: screenWidth*0.05,
-    height: screenHeight*0.0225,
+    width: screenWidth*0.065,
+    height: screenHeight*0.025,
     tintColor: '#000',
   },
   statsSection: {

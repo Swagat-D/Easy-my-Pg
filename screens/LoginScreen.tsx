@@ -7,7 +7,6 @@ import {
   TextInput, 
   TouchableOpacity,
   Dimensions,
-  Alert, 
   ActivityIndicator
 } from 'react-native';
 import OTPVerificationScreen from './OTPVerificationScreen';
@@ -31,6 +30,7 @@ export default function LoginScreen({ initialPhoneNumber = '' }) {
 
   const [showSignupScreen, setShowSignupScreen] = useState(false);
   const [manualClear, setManualClear] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!currentPhoneInput && initialPhoneNumber) {
@@ -46,19 +46,35 @@ export default function LoginScreen({ initialPhoneNumber = '' }) {
       return;
     }
     setCurrentPhoneInput(text);
+    setLoginError(null); 
   };
 
   const handleSendOTP = async () => {
-    if (currentPhoneInput.length === 10) {
-      try {
-        clearError();
-        await sendOTP(currentPhoneInput);
-        setShowOTPScreen(true);
-      } catch (err: any) {
-        Alert.alert('Error', err?.message ?? 'Failed to send OTP');
+    if (currentPhoneInput.length !== 10) {
+      setLoginError('Please enter a valid 10-digit phone number');
+      return;
+    }
+
+    try {
+      setLoginError(null);
+      clearError();
+      await sendOTP(currentPhoneInput);
+      setShowOTPScreen(true);
+    } catch (err: any) {
+      console.error('Send OTP error:', err);
+      
+      // Prevent the error from bubbling up and causing page redirects
+      if (err.message.includes('network') || err.message.includes('timeout') || err.message.includes('Network')) {
+        setLoginError('Please check your internet connection and try again.');
+      } else if (err.message.includes('user not found') || err.message.includes('not registered') || err.message.includes('404')) {
+        setLoginError('No account found with this number. Please sign up first.');
+      } else if (err.message.includes('429') || err.message.includes('Too many requests')) {
+        setLoginError('Too many attempts. Please wait a few minutes and try again.');
+      } else {
+        setLoginError(err?.message || 'Failed to send OTP. Please try again.');
       }
-    } else {
-      Alert.alert('Invalid Phone Number', 'Please enter a valid 10-digit phone number');
+      
+      // Important: Do not re-throw the error to prevent page redirects
     }
   };
 
@@ -100,6 +116,13 @@ export default function LoginScreen({ initialPhoneNumber = '' }) {
       </View>
       
       <Text style={styles.loginText}>Login with Phone number</Text>
+      
+      {/* Error Box */}
+      {loginError && (
+        <View style={styles.errorBox}>
+          <Text style={styles.errorText}>{loginError}</Text>
+        </View>
+      )}
       
       <View style={styles.phoneInputContainer}>
         <Text style={styles.countryCode}>+91</Text>
@@ -187,22 +210,24 @@ const styles = StyleSheet.create({
   },
   subtitleContainer: {
     position: 'absolute',
-    width: screenWidth*0.5944,
+    width: screenWidth*0.9,
     height: screenHeight*0.03,
     top: screenHeight*0.33625,
-    left: screenWidth*0.2,
+    left: screenWidth*0.05,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   subtitleText: {
     fontFamily: 'Poppins-Light',
     fontWeight: '300',
-    fontSize: 16 ,
+    fontSize: Math.min(16, screenWidth * 0.04),
     lineHeight: screenHeight*0.03, 
     letterSpacing: 0,
     color: '#000',
     textAlign: 'center',
     includeFontPadding: false,
+    flexShrink: 1,
   },
   flagIcon: {
     width: screenHeight*0.03,
@@ -224,7 +249,7 @@ const styles = StyleSheet.create({
   },
   phoneInputContainer: {
     position: 'absolute',
-    top: screenHeight*0.4925,
+    top: screenHeight*0.51,
     flexDirection: 'row',
     alignItems: 'center',
     width: screenWidth,
@@ -276,7 +301,7 @@ const styles = StyleSheet.create({
   hiddenInput: {
     position: 'absolute',
     opacity: 0,
-    top: screenHeight*0.4925,
+    top: screenHeight*0.51,
     left: screenWidth*0.25,
     width: screenWidth*0.55,
     height: screenHeight*0.03,
@@ -285,7 +310,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: screenWidth*0.87,
     height: screenHeight*0.0625,
-    top: screenHeight*0.55,
+    top: screenHeight*0.57,
     left: screenWidth*0.06,
     backgroundColor: '#FFD700',
     borderRadius: 35,
@@ -309,7 +334,7 @@ const styles = StyleSheet.create({
   },
   termsContainer: {
     position: 'absolute',
-    top: screenHeight*0.64,
+    top: screenHeight*0.66,
     left: screenWidth*0.06,
     width: screenWidth*0.9,
     flexDirection: 'row',
@@ -352,5 +377,21 @@ const styles = StyleSheet.create({
     lineHeight: screenHeight*0.02,
     color: '#FF0000',
     textDecorationLine: 'underline',
+  },
+  errorBox: {
+    backgroundColor: '#fdecea',
+    borderRadius: 8,
+    padding: screenHeight*0.015,
+    marginHorizontal: screenHeight*0.031,
+    marginTop: screenHeight*0.025,
+    borderWidth: 1,
+    borderColor: '#f5c2c7',
+    top:screenHeight*0.845
+  },
+  errorText: {
+    color: '#b71c1c',
+    fontSize: 14,
+    fontWeight: '500',
+    textAlign: 'center',
   },
 });

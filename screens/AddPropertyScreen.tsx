@@ -13,6 +13,7 @@ import Navbar from './common/Navbar';
 import BottomTabNavigator from './common/Tab';
 import DashboardScreen from './Dashboard';
 import FloorPage from './FloorPage';
+import MainPropertyScreen from './MainProperty';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -21,15 +22,17 @@ interface AddPropertyScreenProps {
   onTabPress?: (tabId: string) => void;
   onAddPress?: () => void;
   onHomePress?: () => void;
+  onPropertyPress?: () => void;
 }
 
 export default function AddPropertyScreen({
   onFloorsPress,
   onTabPress,
   onAddPress,
-  onHomePress
+  onHomePress,
+  onPropertyPress
 }: AddPropertyScreenProps) {
-  const [currentScreen, setCurrentScreen] = useState<'property' | 'dashboard'>('property');
+  const [currentScreen, setCurrentScreen] = useState<'property' | 'dashboard' | 'addProperty'>('addProperty');
   const [showFloorPage, setShowFloorPage] = useState(false);
 
   const handleFloorsPress = () => {
@@ -70,6 +73,14 @@ if (showFloorPage) {
     }
   };
 
+  const handlePropertypress = () => {
+    if (onPropertyPress) {
+      onPropertyPress();
+    } else {
+      setCurrentScreen('property');
+    }
+  };
+
   if (currentScreen === 'dashboard') {
     return (
       <DashboardScreen 
@@ -77,6 +88,10 @@ if (showFloorPage) {
         propertyName="Kalyani Nagar"
       />
     );
+  }
+
+  if (currentScreen === 'property'){
+    return <MainPropertyScreen />
   }
 
   return (
@@ -88,7 +103,6 @@ if (showFloorPage) {
         propertyName="Kalyani Nagar"
         onProfilePress={() => console.log('Profile pressed')}
         onSupportPress={() => console.log('Support pressed')}
-        onDropdownPress={() => console.log('Dropdown pressed')}
       />
 
       <View style={styles.content}>
@@ -128,6 +142,7 @@ if (showFloorPage) {
         onTabPress={handleTabPress}
         onAddPress={handleAddPress}
         onHomePress={handleHomePress}
+        onPropertyPress={handlePropertypress}  
       />
     </SafeAreaView>
   );

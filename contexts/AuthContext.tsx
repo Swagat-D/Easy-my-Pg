@@ -80,7 +80,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 const sendOTP = async (phoneNumber: string): Promise<void> => {
   try {
     setIsLoading(true);
-    setError(null);
     
     const response = await apiService.sendOTP(phoneNumber);
     console.log('OTP sent successfully:', response);
@@ -92,7 +91,6 @@ const sendOTP = async (phoneNumber: string): Promise<void> => {
     console.error('Send OTP error:', error);
     
     let errorMessage = 'Failed to send OTP';
-    let shouldThrow = true;
     
     if (error instanceof Error) {
       if (error.message.includes('timeout')) {
@@ -108,11 +106,7 @@ const sendOTP = async (phoneNumber: string): Promise<void> => {
       }
     }
     
-    setError(errorMessage);
-    
-    if (shouldThrow) {
-      throw new Error(errorMessage);
-    }
+    throw new Error(errorMessage);
   } finally {
     setIsLoading(false);
   }
@@ -121,7 +115,6 @@ const sendOTP = async (phoneNumber: string): Promise<void> => {
   const login = async (phoneNumber: string, otp: string): Promise<void> => {
     try {
       setIsLoading(true);
-      setError(null);
       
       const response = await apiService.login(phoneNumber, otp);
       
@@ -139,7 +132,7 @@ const sendOTP = async (phoneNumber: string): Promise<void> => {
       setUser(userData);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Login failed';
-      setError(errorMessage);
+      
       throw error;
     } finally {
       setIsLoading(false);
@@ -149,13 +142,13 @@ const sendOTP = async (phoneNumber: string): Promise<void> => {
   const register = async (userData: RegisterData): Promise<void> => {
     try {
       setIsLoading(true);
-      setError(null);
+      // Don't clear global error here - let screens handle their own errors
       
       await apiService.registerPropertyOwner(userData);
       
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Registration failed';
-      setError(errorMessage);
+            
       throw error;
     } finally {
       setIsLoading(false);

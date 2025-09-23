@@ -7,8 +7,7 @@ import {
   TextInput, 
   TouchableOpacity,
   Dimensions,
-  Clipboard,
-  Alert 
+  Clipboard
 } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
 import RoleSelectionScreen from './RoleSelectionScreen';
@@ -38,6 +37,7 @@ export default function OTPVerificationScreen({
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [resendTimer, setResendTimer] = useState(120);
+  const [otpError, setOtpError] = useState<string | null>(null);
   const { login, sendOTP, error, clearError } = useAuth();
 
 
@@ -62,6 +62,10 @@ export default function OTPVerificationScreen({
   }, [otp]);
 
   const handleOTPChange = async (value: string, index: number) => {
+    if (otpError) {
+      setOtpError(null);
+    }
+    
     if (value.length > 1) {
       const pastedValue = value.replace(/\D/g, ''); 
       
@@ -104,43 +108,50 @@ export default function OTPVerificationScreen({
   };
 
   const handleVerifyOTP = async (otpArray = otp) => {
-  const otpString = otpArray.join('');
-  if (otpString.length !== 6) {
-    Alert.alert('Incomplete OTP', 'Please enter the complete 6-digit OTP');
-    return;
-  }
-
-  try {
-    setIsLoading(true);
-    clearError();
-
-    if (isFromSignup) {
-      Alert.alert('Verification Successful', 'Your account has been verified successfully!');
-      setShowRoleSelection(true);
-    } else {
-      await login(phoneNumber, otpString);
-      Alert.alert('Login Successful', 'Welcome back!');
+    const otpString = otpArray.join('');
+    if (otpString.length !== 6) {
+      setOtpError('Please enter the complete 6-digit OTP');
+      return;
     }
-    
-  } catch (error: any) {
-    console.error('OTP verification error:', error);
-    
-    if (error.message.includes('invalid otp') || 
-        error.message.includes('expired') || 
-        error.message.includes('incorrect')) {
-      Alert.alert('Invalid OTP', 'The OTP you entered is incorrect or has expired. Please try again.');
-    } else if (error.message.includes('User not found')) {
-      Alert.alert('Account Not Found', 'No account found with this number. Please sign up first.');
-    } else {
-      Alert.alert('Verification Failed', error.message || 'Failed to verify OTP. Please try again.');
+
+    try {
+      setIsLoading(true);
+      setOtpError(null);
+      clearError();
+
+      if (isFromSignup) {
+        setOtpError('Account verified successfully! Setting up your profile...');
+        setShowRoleSelection(true);
+      } else {
+        await login(phoneNumber, otpString);
+        setOtpError('Login successful! Welcome back!');
+      }
+      
+    } catch (error: any) {
+      console.error('OTP verification error:', error);
+      
+      // Prevent error from bubbling up and causing page redirects
+      if (error.message.includes('invalid otp') || 
+          error.message.includes('expired') || 
+          error.message.includes('incorrect') ||
+          error.message.includes('wrong')) {
+        setOtpError('Invalid OTP. Please check and try again.');
+      } else if (error.message.includes('User not found') || error.message.includes('404')) {
+        setOtpError('Account not found. Please sign up first.');
+      } else if (error.message.includes('network') || error.message.includes('timeout')) {
+        setOtpError('Please check your internet connection and try again.');
+      } else {
+        setOtpError(error.message || 'Verification failed. Please try again.');
+      }
+      
+      setOtp(['', '', '', '', '', '']);
+      inputRefs.current[0]?.focus();
+      
+      // Important: Do not re-throw the error
+    } finally {
+      setIsLoading(false);
     }
-    
-    setOtp(['', '', '', '', '', '']);
-    inputRefs.current[0]?.focus();
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
   const handleRoleSelected = (role: string) => {
     console.log('selected role:', role);
@@ -161,27 +172,39 @@ export default function OTPVerificationScreen({
   };
 
   const handleResendOTP = async () => {
-  if (resendTimer > 0) {
-    Alert.alert('Please Wait', `You can resend OTP after ${resendTimer} seconds`);
-    return;
-  }
+    if (resendTimer > 0) {
+      setOtpError(`Please wait ${resendTimer} seconds before requesting a new OTP`);
+      return;
+    }
 
-  try {
-    setIsLoading(true);
-    clearError();
-    
-    await sendOTP(phoneNumber);
-    setResendTimer(120);
-    setOtp(['', '', '', '', '', '']);
-    Alert.alert('OTP Resent', 'A new OTP has been sent to your mobile number');
-    inputRefs.current[0]?.focus();
-    
-  } catch (error: any) {
-    Alert.alert('Resend Failed', error.message || 'Failed to resend OTP. Please try again.');
-  } finally {
-    setIsLoading(false);
-  }
-};
+    try {
+      setIsLoading(true);
+      setOtpError(null);
+      clearError();
+      
+      await sendOTP(phoneNumber);
+      setResendTimer(120);
+      setOtp(['', '', '', '', '', '']);
+      setOtpError(' New OTP sent successfully to your mobile number');
+      inputRefs.current[0]?.focus();
+      
+    } catch (error: any) {
+      console.error('Resend OTP error:', error);
+      
+      // Prevent error from bubbling up and causing page redirects
+      if (error.message.includes('network') || error.message.includes('timeout')) {
+        setOtpError('Please check your internet connection and try again.');
+      } else if (error.message.includes('429') || error.message.includes('Too many requests')) {
+        setOtpError('Too many attempts. Please wait a few minutes and try again.');
+      } else {
+        setOtpError(error.message || 'Failed to resend OTP. Please try again.');
+      }
+      
+      // Important: Do not re-throw the error
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -215,6 +238,12 @@ export default function OTPVerificationScreen({
 
       {isAutoFetching && (
         <Text style={styles.autoFetchText}>Auto-detecting OTP...</Text>
+      )}
+
+      {otpError && (
+        <View style={styles.errorBox}>
+          <Text style={styles.errorText}>{otpError}</Text>
+        </View>
       )}
       
       <View style={styles.otpInputContainer}>
@@ -270,22 +299,24 @@ const styles = StyleSheet.create({
   },
   subtitleContainer: {
     position: 'absolute',
-    width: screenWidth*0.59,
+    width: screenWidth*0.9,
     height: screenHeight*0.03,
     top: screenHeight*0.336,
-    left: screenWidth*0.21667,
+    left: screenWidth*0.05,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   subtitleText: {
     fontFamily: 'Poppins-Light',
     fontWeight: '300',
-    fontSize: 16,
+    fontSize: Math.min(16, screenWidth * 0.04),
     lineHeight: screenHeight*0.03,
     letterSpacing: 0,
     color: '#000',
     textAlign: 'center',
     includeFontPadding: false,
+    flexShrink: 1,
   },
   flagIcon: {
     width: screenWidth*0.067,
@@ -374,7 +405,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: screenWidth*0.87,
     height: screenHeight*0.0625,
-    top: screenHeight*0.63,
+    top: screenHeight*0.65,
     left: screenWidth*0.065,
     backgroundColor: '#E0E0E0',
     borderRadius: 35,
@@ -400,7 +431,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: screenWidth*0.562,
     height: screenHeight*0.026,
-    top: screenHeight*0.74,
+    top: screenHeight*0.76,
     left: screenWidth*0.22,
     flexDirection: 'row',
     justifyContent: 'center',
@@ -420,6 +451,22 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: screenHeight*0.0175,
     color: '#FF0000',
+    textAlign: 'center',
+  },
+  errorBox: {
+    backgroundColor: '#fdecea',
+    borderRadius: 8,
+    padding: screenHeight*0.015,
+    marginHorizontal: screenHeight*0.031,
+    marginTop: screenHeight*0.025,
+    borderWidth: 1,
+    borderColor: '#f5c2c7',
+    top:screenHeight*0.845
+  },
+  errorText: {
+    color: '#b71c1c',
+    fontSize: 14,
+    fontWeight: '500',
     textAlign: 'center',
   },
 });

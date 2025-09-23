@@ -142,7 +142,12 @@ export default function DashboardScreen({
       />
 
       {/* Search Bar */}
-      <View style={styles.searchContainer}>
+      
+      
+      {/* Main Content */}
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+
+        <View style={styles.searchContainer}>
         <Image
           source={require('../assets/icons/search.png')}
           style={styles.searchIcon}
@@ -156,9 +161,7 @@ export default function DashboardScreen({
           onChangeText={setSearchText}
         />
       </View>
-      
-      {/* Main Content */}
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+
         {/* Dashboard Content Container */}
         <View style={styles.dashboardContent}>
           
@@ -463,13 +466,14 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+    top: (screenHeight*0.0177),
   },
   
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     marginHorizontal: screenWidth*0.0472,
-    marginTop: screenHeight*0.029,
+    marginTop: screenHeight*0.013,
     marginBottom: screenWidth*0.033,
     height: screenHeight*0.055,
     borderRadius: 22,
