@@ -70,6 +70,7 @@ const AppContent = () => {
           'Montserrat-SemiBold': require('./assets/fonts/Montserrat-SemiBold.ttf'),
           'Inter-Bold': require('./assets/fonts/Inter-Bold.ttf'),
           'Roboto-Medium': require('./assets/fonts/Roboto-Medium.ttf'),
+          'OpenSans-Regular': require('./assets/fonts/OpenSans-Regular.ttf'),
         });
         setFontsLoaded(true);
       } catch (error) {

@@ -54,17 +54,38 @@ export default function MainPropertyScreen({
         underNotice: 1,
         activeTicket: 5,
         beds: [
-          { id: 'bed1', available: true },
+          { id: 'bed1', available: false },
           { id: 'bed2', available: true },
           { id: 'bed3', available: false },
           { id: 'bed4', available: false },
           { id: 'bed5', available: true },
-          { id: 'bed6', available: true }
+          { id: 'bed6', available: false }
         ]
       },
       {
         id: 'room_102',
         roomNumber: 'Room 102',
+        status: 'Available',
+        bedCount: 10,
+        rentDue: 2,
+        underNotice: 1,
+        activeTicket: 5,
+        beds: [
+          { id: 'bed1', available: true },
+          { id: 'bed2', available: true },
+          { id: 'bed3', available: true },
+          { id: 'bed4', available: false },
+          { id: 'bed5', available: false },
+          { id: 'bed6', available: false },
+          { id: 'bed7', available: false },
+          { id: 'bed8', available: false },
+          { id: 'bed9', available: false },
+          { id: 'bed10', available: false }
+        ]
+      },
+      {
+        id: 'room_103',
+        roomNumber: 'Room 103',
         status: 'Full',
         bedCount: 9,
         rentDue: 2,
@@ -205,8 +226,40 @@ export default function MainPropertyScreen({
   };
 
   const renderRoomCard = (room: any) => {
-    const statusColor = room.status === 'Available' ? '#4CAF50' : '#F44336';
-    const statusBgColor = room.status === 'Available' ? '#E8F5E8' : '#FFEBEE';
+    const statusBgColor = room.status === 'Available' ? '#B0DCB2' : '#FF8484';
+    
+    // Calculate bed display logic
+    const availableBeds = room.beds.filter((bed: any) => bed.available);
+    const occupiedBeds = room.beds.filter((bed: any) => !bed.available);
+    const totalBeds = room.beds.length;
+    
+    // Show maximum 4 bed icons
+    const maxDisplayBeds = 4;
+    let bedsToShow = [];
+    let remainingCount = 0;
+    
+    // First show available beds (green), then occupied beds (red)
+    const availableCount = availableBeds.length;
+    const occupiedCount = occupiedBeds.length;
+    
+    if (totalBeds <= maxDisplayBeds) {
+      // Show all beds if total is 4 or less
+      bedsToShow = [...availableBeds, ...occupiedBeds];
+    } else {
+      // Show up to 4 beds with priority to available beds
+      if (availableCount >= maxDisplayBeds) {
+        // If we have 4 or more available beds, show 4 available
+        bedsToShow = availableBeds.slice(0, maxDisplayBeds);
+        remainingCount = totalBeds - maxDisplayBeds;
+      } else {
+        // Show all available beds first, then fill with occupied beds
+        bedsToShow = [...availableBeds];
+        const remainingSlots = maxDisplayBeds - availableCount;
+        const occupiedToShow = Math.min(remainingSlots, occupiedCount);
+        bedsToShow = [...bedsToShow, ...occupiedBeds.slice(0, occupiedToShow)];
+        remainingCount = totalBeds - bedsToShow.length;
+      }
+    }
     
     return (
       <View key={room.id} style={roomCardStyles.container}>
@@ -226,7 +279,7 @@ export default function MainPropertyScreen({
           
           {/* Status Badge */}
           <View style={[roomCardStyles.statusBadge, { backgroundColor: statusBgColor }]}>
-            <Text style={[roomCardStyles.statusText, { color: statusColor }]}>
+            <Text style={[roomCardStyles.statusText]}>
               {room.status}
             </Text>
           </View>
@@ -268,7 +321,7 @@ export default function MainPropertyScreen({
                 resizeMode="contain"
               />
               <Text style={roomCardStyles.detailLabel}>Under Notice: </Text>
-              <Text style={roomCardStyles.detailValue}>{room.underNotice}</Text>
+              <Text style={roomCardStyles.detailValuea}>{room.underNotice}</Text>
             </View>
           </View>
           
@@ -298,9 +351,9 @@ export default function MainPropertyScreen({
         
         {/* Beds Section */}
         <View style={roomCardStyles.bedsContainer}>
-          {room.beds.map((bed: any, index: number) => (
+          {bedsToShow.map((bed: any, index: number) => (
             <Image
-              key={bed.id}
+              key={`${bed.id}-${index}`}
               source={bed.available 
                 ? require('../assets/icons/green.png') 
                 : require('../assets/icons/red.png')
@@ -309,6 +362,11 @@ export default function MainPropertyScreen({
               resizeMode="contain"
             />
           ))}
+          {remainingCount > 0 && (
+            <View style={roomCardStyles.remainingBedContainer}>
+              <Text style={roomCardStyles.remainingBedText}>+{remainingCount}</Text>
+            </View>
+          )}
         </View>
         
         {/* Add Tenant Button */}
@@ -417,27 +475,23 @@ export default function MainPropertyScreen({
         </View>
 
         <View style={styles.floorNavigationSection}>
-        {/* Fixed Floor View Button */}
-        <TouchableOpacity style={styles.fixedFloorButton}>
-          <Text style={styles.fixedFloorButtonText}>Floor View</Text>
-        </TouchableOpacity>
+          <View style={styles.fixedFloorButton}>
+            <Text style={styles.fixedFloorButtonText}>Floor View</Text>
+          </View>
+          <View style={styles.verticalDivider} />
 
-        {/* Vertical Divider Line */}
-        <View style={styles.verticalDivider} />
-
-        {/* Scrollable Floor Buttons Container */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.floorScrollContainer}
-          contentContainerStyle={styles.floorScrollContent}
-        >
-          {floorsData.map((floor, index) => (
-            <TouchableOpacity
-              key={index}
-              style={[
-                styles.floorScrollButton,
-                selectedFloor === floor && styles.selectedFloorButton
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.floorScrollContainer}
+            contentContainerStyle={styles.floorScrollContent}
+          >
+            {floorsData.map((floor, index) => (
+              <TouchableOpacity
+                key={index}
+                style={[
+                  styles.floorScrollButton,
+                  selectedFloor === floor && styles.selectedFloorButton
                 ]}
                 onPress={() => handleFloorSelect(floor)}
               >
@@ -446,7 +500,7 @@ export default function MainPropertyScreen({
                   selectedFloor === floor && styles.selectedFloorButtonText
                 ]}>
                   {floor}
-               </Text>
+                </Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -650,107 +704,80 @@ const styles = StyleSheet.create({
   floorNavigationSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 42,
-    width: screenWidth
+    marginTop: screenHeight * 0.005,
+    marginBottom: screenHeight * 0.0225,
+    height: screenHeight * 0.045,
+    backgroundColor: '#FFFFFF',
+    paddingLeft: screenWidth * 0.05,
+    
   },
   fixedFloorButton: {
-    width: 86,
-    height: 28,
+    paddingHorizontal: screenWidth * 0.04,
+    paddingVertical: screenHeight * 0.008,
     backgroundColor: '#FED232',
     borderRadius: 6,
-    borderWidth: 1,
-    borderColor: '#FFFFFF',
-    left: 19,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#171A1F',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.05,
-    shadowRadius: 1,
-    elevation: 2,
-    boxShadow: '0px 0px 1px 0px #171A1F0D, 0px 0px 2px 0px #171A1F14',
+    width: screenWidth * 0.239,
+    height: screenHeight * 0.035,
+    minWidth: screenWidth * 0.2,
   },
   fixedFloorButtonText: {
     fontFamily: 'Roboto-Medium',
-    fontWeight: '500',
-    fontSize: 10,
-    lineHeight: 20,
-    letterSpacing: 0,
-    textAlign: 'center',
+    fontWeight: '600',
+    fontSize: screenWidth * 0.028,
     color: '#000000',
-    width: 59,
-    height: 20,
-    top: 4,
-    left: 13,
-    position: 'absolute',
+    textAlign: 'center',
   },
   verticalDivider: {
     width: 1,
-    height: 20,
+    height: screenHeight * 0.025,
     backgroundColor: '#E0E0E0',
-    marginHorizontal: 8,
-    top: 6,
+    marginHorizontal: screenWidth * 0.03,
   },
   floorScrollContainer: {
-    width: 260,
-    height: 28,
-    top: 6,
-    left: 121,
-    position: 'absolute',
+    flex: 1,
   },
   floorScrollContent: {
-    paddingRight: 20,
     alignItems: 'center',
   },
   floorScrollButton: {
-    width: 86,
-    height: 28,
+    paddingHorizontal: screenWidth * 0.035,
+    paddingVertical: screenHeight * 0.008,
     backgroundColor: '#FFF4B8',
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: '#FFFFFF',
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 8,
-    shadowColor: '#171A1F',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.05,
-    shadowRadius: 1,
-    elevation: 2,
-    boxShadow: '0px 0px 1px 0px #171A1F0D, 0px 0px 2px 0px #171A1F14',
+    marginRight: screenWidth * 0.025,
+    borderWidth: 1,
+    borderColor: '#FFFFFF',
+    width: screenWidth * 0.239,
+    height: screenHeight * 0.035,
+    minWidth: screenWidth * 0.18,
   },
   selectedFloorButton: {
     backgroundColor: '#FED232',
+    borderColor: '#FFC107',
   },
   floorScrollButtonText: {
     fontFamily: 'Roboto-Medium',
     fontWeight: '500',
-    fontSize: 10,
-    lineHeight: 20,
-    letterSpacing: 0,
+    fontSize: screenWidth * 0.026,
+    color: '#666666',
     textAlign: 'center',
-    color: '#000000',
-    width: 59,
-    height: 20,
-    top: 4,
-    left: 13,
-    position: 'absolute',
   },
   selectedFloorButtonText: {
     fontWeight: '600',
+    color: '#000000',
   },
 });
-
-// Room Card Styles
 const roomCardStyles = StyleSheet.create({
   roomsSection: {
     paddingHorizontal: screenWidth * 0.046,
-    paddingTop: screenHeight * 0.025,
-    paddingBottom: screenHeight * 0.02,
   },
   container: {
-    width: 339,
-    height: 171,
+    width: screenWidth * 0.9,
+    height: screenHeight * 0.21375,
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     borderWidth: 1,
@@ -758,74 +785,82 @@ const roomCardStyles = StyleSheet.create({
     marginBottom: screenHeight * 0.02,
     shadowColor: '#171A1F',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.07,
     shadowRadius: 1,
-    elevation: 2,
+    elevation: 1,
     position: 'relative',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 11,
-    paddingHorizontal: 22,
-    height: 51,
+    paddingTop: screenHeight * 0.013,
+    paddingHorizontal: screenWidth * 0.055,
+    height: screenHeight * 0.06,
   },
   roomIcon: {
-    width: 30,
-    height: 30,
+    width: screenWidth * 0.08,
+    height: screenWidth * 0.08,
     backgroundColor: '#FFD604',
-    borderRadius: 18,
+    borderRadius: screenWidth * 0.04,
     borderWidth: 1,
     borderColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
   },
   doorIcon: {
-    width: 16,
-    height: 16,
+    width: screenWidth * 0.042,
+    height: screenWidth * 0.042,
     tintColor: '#000000',
   },
   roomNumber: {
-    fontFamily: 'Roboto-Medium',
-    fontWeight: '600',
+    fontFamily: 'Montserrat-Bold',
+    fontWeight: '700',
     fontSize: 16,
-    color: '#000000',
-    marginLeft: 12,
+    lineHeight: 24,
+    letterSpacing: 0,
+    color: '#171A1F',
+    marginLeft: screenWidth * 0.03,
     flex: 1,
+    verticalAlign: "middle",
   },
   statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    marginRight: 12,
+    width: screenWidth * 0.22,
+    height: screenHeight * 0.03125,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 14,
+    marginRight: screenWidth * 0.032,
   },
   statusText: {
     fontFamily: 'Roboto-Medium',
     fontWeight: '500',
-    fontSize: 12,
+    fontSize: 14,
+    lineHeight: 14,
+    verticalAlign: "middle",
+    letterSpacing: 0,
+    color: '#161616',
   },
   shareButton: {
-    width: 21,
-    height: 18,
+    width: screenWidth * 0.0585,
+    height: screenHeight * 0.0225,
     alignItems: 'center',
     justifyContent: 'center',
   },
   shareIcon: {
-    width: 18,
-    height: 16,
+    width: screenWidth * 0.0585,
+    height: screenHeight * 0.0225,
     tintColor: '#666666',
   },
   dividerLine: {
-    width: 248,
+    width: screenWidth * 0.65,
     height: 1,
     backgroundColor: '#EEECEC',
-    marginLeft: 45,
+    marginLeft: screenWidth * 0.12,
     marginTop: 0,
   },
   detailsContainer: {
     flexDirection: 'row',
-    paddingHorizontal: 21,
-    paddingTop: 16,
+    paddingHorizontal: screenWidth * 0.055,
+    paddingTop: screenHeight * 0.02,
     justifyContent: 'space-between',
   },
   leftColumn: {
@@ -840,57 +875,87 @@ const roomCardStyles = StyleSheet.create({
     marginBottom: 8,
   },
   detailIcon: {
-    width: 12,
-    height: 12,
-    tintColor: '#666666',
-    marginRight: 6,
+    width: screenWidth * 0.0585,
+    height: screenHeight * 0.0225,
+    tintColor: '#000000',
+    borderWidth: 0,
+    borderColor: '#000000',
+    marginRight: screenWidth * 0.016,
   },
   detailLabel: {
-    fontFamily: 'Roboto-Regular',
-    fontSize: 11,
-    color: '#666666',
+    fontFamily: 'OpenSans-Regular',
+    fontWeight: '400',
+    lineHeight: 17,
+    letterSpacing: 0,
+    fontSize: 14,
+    color: '#000000',
   },
   detailValue: {
     fontFamily: 'Roboto-Medium',
-    fontWeight: '600',
-    fontSize: 11,
-    color: '#000000',
+    fontWeight: '500',
+    fontSize: 16,
+    letterSpacing: 0,
+    lineHeight: 20,
+    color: '#EF1D1D',
+  },
+  detailValuea: {
+    fontFamily: 'Roboto-Medium',
+    fontWeight: '500',
+    fontSize: 16,
+    lineHeight: 20,
+    letterSpacing: 0,
+    color: '#66BB6A',
   },
   bedsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 21,
-    paddingTop: 8,
-    width: 92,
-    height: 20,
+    paddingHorizontal: screenWidth * 0.055,
+    paddingTop: screenHeight * 0.01,
+    height: screenHeight * 0.03,
+    flexWrap: 'wrap',
+    top: screenHeight * 0.003,
   },
   bedIcon: {
-    width: 12,
-    height: 12,
-    marginRight: 4,
+    width: screenWidth * 0.055,
+    height: screenHeight * 0.025,
+    marginRight: screenWidth * 0.01,
   },
-  emoji: {
-    fontSize: 14,
-    marginLeft: 4,
+  remainingBedContainer: {
+    width: screenWidth * 0.05,
+    height: screenHeight * 0.0225,
+    backgroundColor: '#FFD604',
+    borderRadius: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: screenWidth * 0.01,
+  },
+  remainingBedText: {
+    fontSize: 8,
+    lineHeight: 16,
+    fontWeight: '500',
+    color: '#000000',
+    fontFamily: 'Roboto-Medium',
   },
   addTenantButton: {
-    width: 123,
-    height: 35,
+    width: screenWidth * 0.341,
+    height: screenHeight * 0.04375,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: '#313030',
     borderRadius: 4,
     position: 'absolute',
-    top: 121,
-    right: 21,
+    bottom: screenHeight * 0.02,
+    right: screenWidth * 0.065,
     alignItems: 'center',
     justifyContent: 'center',
   },
   addTenantText: {
-    fontFamily: 'Roboto-Medium',
-    fontWeight: '500',
-    fontSize: 10,
+    fontFamily: 'Inter-Bold',
+    fontWeight: '700',
+    fontSize: 11,
     color: '#000000',
-    letterSpacing: 0.5,
+    letterSpacing: 0,
+    lineHeight: screenHeight * 0.015,
+    verticalAlign: "middle",
   },
 });
