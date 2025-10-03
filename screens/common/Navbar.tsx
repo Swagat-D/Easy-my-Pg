@@ -1,4 +1,4 @@
-import React, { use, useState } from 'react';
+import React, { useState } from 'react';
 import {
   StyleSheet,
   Text,
@@ -10,7 +10,6 @@ import {
   Alert
 } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
-import AddPropertyScreen from '../AddPropertyScreen';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -20,6 +19,7 @@ interface NavbarProps {
   profileImage?: string;
   onProfilePress?: () => void;
   onSupportPress?: () => void;
+  onAddPropertyPress?: () => void;
 }
 
 export default function Navbar({
@@ -27,13 +27,13 @@ export default function Navbar({
   propertyName = 'Kalyani Nagar',
   profileImage,
   onProfilePress,
-  onSupportPress
+  onSupportPress,
+  onAddPropertyPress
 }: NavbarProps) {
   const { logout } = useAuth();
   const [showDropdown, setShowDropdown] = useState(false);
   const [showPropertyDropdown, setShowPropertyDropdown] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState(propertyName);
-  const[addproperty, setAddProperty] = useState(false);
 
   const properties = ['Kalyani Nagar', 'Pune Station', 'Hadapsar', 'Kothrud', 'Aundh', 'Baner', 'Wakad'];
 
@@ -49,7 +49,18 @@ export default function Navbar({
 
   const handleAddProperty = () => {
     setShowPropertyDropdown(false);
-    setAddProperty(true);
+    if (onAddPropertyPress) {
+      onAddPropertyPress();
+    } else {
+      // Fallback to alert if no callback provided
+      Alert.alert(
+        'Add Property',
+        'Navigate to Add Property screen',
+        [
+          { text: 'OK', onPress: () => console.log('Navigate to Add Property') }
+        ]
+      );
+    }
   };
 
   const handleViewAllProperties = () => {
@@ -60,15 +71,6 @@ export default function Navbar({
       [{ text: 'OK' }]
     );
   };
-
-  // If Add Property screen should be shown, render it instead of the normal content
-  if (addproperty) {
-    return (
-      <View style={styles.fullScreenContainer}>
-        <AddPropertyScreen />
-      </View>
-    );
-  }
 
   const displayedProperties = properties.length > 2 ? properties.slice(0, 2) : properties;
   const hasMoreProperties = properties.length > 2;

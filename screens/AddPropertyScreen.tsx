@@ -11,9 +11,7 @@ import {
 } from 'react-native';
 import Navbar from './common/Navbar';
 import BottomTabNavigator from './common/Tab';
-import DashboardScreen from './Dashboard';
 import FloorPage from './FloorPage';
-import MainPropertyScreen from './MainProperty';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -23,6 +21,7 @@ interface AddPropertyScreenProps {
   onAddPress?: () => void;
   onHomePress?: () => void;
   onPropertyPress?: () => void;
+  activeTab?: string;
 }
 
 export default function AddPropertyScreen({
@@ -30,9 +29,9 @@ export default function AddPropertyScreen({
   onTabPress,
   onAddPress,
   onHomePress,
-  onPropertyPress
+  onPropertyPress,
+  activeTab = 'property'
 }: AddPropertyScreenProps) {
-  const [currentScreen, setCurrentScreen] = useState<'property' | 'dashboard' | 'addProperty'>('addProperty');
   const [showFloorPage, setShowFloorPage] = useState(false);
 
   const handleFloorsPress = () => {
@@ -44,54 +43,25 @@ export default function AddPropertyScreen({
   };
 
   const handleBackFromFloors = () => {
-  setShowFloorPage(false);
-};
-
-if (showFloorPage) {
-  return (
-    <FloorPage onBackPress={handleBackFromFloors} />
-  );
-}
-
-  const handleTabPress = (tabId: string) => {
-    if (onTabPress) {
-      onTabPress(tabId);
-    }
-  };
-
-  const handleAddPress = () => {
-    if (onAddPress) {
-      onAddPress();
-    }
+    setShowFloorPage(false);
   };
 
   const handleHomePress = () => {
     if (onHomePress) {
       onHomePress();
-    } else {
-      setCurrentScreen('dashboard');
     }
   };
 
   const handlePropertypress = () => {
     if (onPropertyPress) {
       onPropertyPress();
-    } else {
-      setCurrentScreen('property');
     }
   };
 
-  if (currentScreen === 'dashboard') {
+  if (showFloorPage) {
     return (
-      <DashboardScreen 
-        userName="Gyana"
-        propertyName="Kalyani Nagar"
-      />
+      <FloorPage onBackPress={handleBackFromFloors} />
     );
-  }
-
-  if (currentScreen === 'property'){
-    return <MainPropertyScreen />
   }
 
   return (
@@ -99,10 +69,7 @@ if (showFloorPage) {
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       
       <Navbar
-        userName="Gyana"
-        propertyName="Kalyani Nagar"
-        onProfilePress={() => console.log('Profile pressed')}
-        onSupportPress={() => console.log('Support pressed')}
+        onAddPropertyPress={() => {}} // Already on AddProperty screen
       />
 
       <View style={styles.content}>
@@ -138,11 +105,10 @@ if (showFloorPage) {
 
       {/* Bottom Tab Navigator */}
       <BottomTabNavigator
-        activeTab="property"
-        onTabPress={handleTabPress}
-        onAddPress={handleAddPress}
-        onHomePress={handleHomePress}
-        onPropertyPress={handlePropertypress}  
+        activeTab={activeTab}
+        onTabPress={onTabPress || (() => {})}
+        onAddPress={onAddPress || (() => {})}
+        onHomePress={onHomePress || (() => {})}
       />
     </SafeAreaView>
   );

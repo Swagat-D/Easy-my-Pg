@@ -22,15 +22,16 @@ interface MainPropertyScreenProps {
   propertyName?: string;
   onTabPress?: (tabId: string) => void;
   onHomePress?: () => void;
+  activeTab?: string;
 }
 
 export default function MainPropertyScreen({
   userName = 'Gyana',
   propertyName = 'Kalyani Nagar',
   onTabPress,
-  onHomePress
+  onHomePress,
+  activeTab = 'property'
 }: MainPropertyScreenProps) {
-  const [activeTab, setActiveTab] = useState<'property' | 'dashboard'>('property');
   const [searchText, setSearchText] = useState('');
   const [selectedFloor, setSelectedFloor] = useState('Ground Floor');
 
@@ -210,12 +211,10 @@ export default function MainPropertyScreen({
   };
 
   const handleHomePress = () => {
-      if (onHomePress) {
-        onHomePress();
-      } else {
-        setActiveTab('dashboard');
-      }
-    };
+    if (onHomePress) {
+      onHomePress();
+    }
+  };
 
   const handleAddTenant = (roomId: string) => {
     console.log('Add tenant for room:', roomId);
@@ -429,6 +428,11 @@ export default function MainPropertyScreen({
         propertyName={propertyName}
         onProfilePress={handleProfilePress}
         onSupportPress={handleSupportPress}
+        onAddPropertyPress={() => {
+          if (onTabPress) {
+            onTabPress('addProperty');
+          }
+        }}
       />
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>

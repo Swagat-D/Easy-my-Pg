@@ -15,6 +15,8 @@ import {
 import Navbar from './common/Navbar';
 import BottomTabNavigator from './common/Tab';
 import MainPropertyScreen from './MainProperty';
+import TenantsScreen from './TenantsScreen';
+import AddPropertyScreen from './AddPropertyScreen';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -30,7 +32,7 @@ export default function DashboardScreen({
   onPropertyPress
 }: DashboardScreenProps) {
   const [activeTab, setActiveTab] = useState('home');
-  const [currentScreen, setCurrentScreen] = useState<'property' | 'dashboard'>('dashboard');
+  const [currentScreen, setCurrentScreen] = useState<'property' | 'dashboard' | 'tenants' | 'addProperty'>('dashboard');
   const [searchText, setSearchText] = useState('');
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const slideInterval = useRef<NodeJS.Timeout | null>(null);
@@ -93,12 +95,20 @@ export default function DashboardScreen({
     if (onPropertyPress) {
       onPropertyPress();
     } else {
+      setActiveTab('property');
       setCurrentScreen('property');
     }
   };
 
   const handleTabPress = (tabId: string) => {
     setActiveTab(tabId);
+    if (tabId === 'property') {
+      setCurrentScreen('property');
+    } else if (tabId === 'tenants') {
+      setCurrentScreen('tenants');
+    } else if (tabId === 'home') {
+      setCurrentScreen('dashboard');
+    }
   };
 
   const handleAddPress = () => {
@@ -123,9 +133,72 @@ export default function DashboardScreen({
   };
 
   // Conditional rendering after all hooks
+  if (currentScreen === 'addProperty') {
+    return (
+      <AddPropertyScreen 
+        onTabPress={(tabId) => {
+          setActiveTab(tabId);
+          if (tabId === 'property') {
+            setCurrentScreen('property');
+          } else if (tabId === 'tenants') {
+            setCurrentScreen('tenants');
+          } else if (tabId === 'home') {
+            setCurrentScreen('dashboard');
+          }
+        }}
+        onHomePress={() => {
+          setActiveTab('home');
+          setCurrentScreen('dashboard');
+        }}
+      />
+    );
+  }
+
   if (currentScreen === 'property') {
     return (
-      <MainPropertyScreen />
+      <MainPropertyScreen 
+        activeTab={activeTab}
+        onTabPress={(tabId) => {
+          setActiveTab(tabId);
+          if (tabId === 'tenants') {
+            setCurrentScreen('tenants');
+          } else if (tabId === 'home') {
+            setCurrentScreen('dashboard');
+          } else if (tabId === 'property') {
+            setCurrentScreen('property');
+          } else if (tabId === 'addProperty') {
+            setCurrentScreen('addProperty');
+          }
+        }}
+        onHomePress={() => {
+          setActiveTab('home');
+          setCurrentScreen('dashboard');
+        }}
+      />
+    );
+  }
+
+  if (currentScreen === 'tenants') {
+    return (
+      <TenantsScreen 
+        activeTab={activeTab}
+        onTabPress={(tabId) => {
+          setActiveTab(tabId);
+          if (tabId === 'property') {
+            setCurrentScreen('property');
+          } else if (tabId === 'home') {
+            setCurrentScreen('dashboard');
+          } else if (tabId === 'tenants') {
+            setCurrentScreen('tenants');
+          } else if (tabId === 'addProperty') {
+            setCurrentScreen('addProperty');
+          }
+        }}
+        onHomePress={() => {
+          setActiveTab('home');
+          setCurrentScreen('dashboard');
+        }}
+      />
     );
   }
 
@@ -139,6 +212,10 @@ export default function DashboardScreen({
         propertyName={propertyName}
         onProfilePress={handleProfilePress}
         onSupportPress={handleSupportPress}
+        onAddPropertyPress={() => {
+          setActiveTab('property');
+          setCurrentScreen('addProperty');
+        }}
       />
 
       {/* Search Bar */}

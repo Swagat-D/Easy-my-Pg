@@ -25,6 +25,7 @@ interface BottomTabNavigatorProps {
   onAddPress?: () => void;
   onHomePress?: () => void;
   onPropertyPress?: () => void;
+  onTenantsPress?: () => void;
 }
 
 export default function BottomTabNavigator({ 
@@ -32,7 +33,8 @@ export default function BottomTabNavigator({
   onTabPress,
   onAddPress,
   onHomePress,
-  onPropertyPress 
+  onPropertyPress,
+  onTenantsPress 
 }: BottomTabNavigatorProps) {
 
   const tabs: TabItem[] = [
@@ -88,6 +90,12 @@ export default function BottomTabNavigator({
     } else if (tabId === 'property') {
       if (onPropertyPress) {
         onPropertyPress();
+      } else {
+        onTabPress(tabId);
+      }
+    } else if (tabId === 'tenants') {
+      if (onTenantsPress) {
+        onTenantsPress();
       } else {
         onTabPress(tabId);
       }
