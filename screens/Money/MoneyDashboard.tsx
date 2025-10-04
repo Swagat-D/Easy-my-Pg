@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   Image,
   Dimensions,
+  TextInput,
 } from 'react-native';
 import Navbar from '../common/Navbar';
 import BottomTabNavigator from '../common/Tab';
@@ -36,6 +37,7 @@ export default function MoneyDashboard({
   currentMoneySection = 'dashboard' // Default to dashboard
 }: MoneyDashboardProps) {
   const [activeSection, setActiveSection] = useState(currentMoneySection);
+  const [searchText, setSearchText] = useState('');
 
   const handleProfilePress = () => {
     console.log('Profile pressed');
@@ -47,6 +49,10 @@ export default function MoneyDashboard({
 
   const handleAddPress = () => {
     console.log('Add button pressed');
+  };
+
+  const handleFilterPress = () => {
+    console.log('Filter pressed');
   };
 
   const handleTabPress = (tabId: string) => {
@@ -69,6 +75,14 @@ export default function MoneyDashboard({
     }
     // For now, this will just update the active state
     // Later we can implement navigation to different screens
+  };
+
+  const getCurrentMonth = () => {
+    const months = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    return months[new Date().getMonth()];
   };
 
   return (
@@ -95,29 +109,101 @@ export default function MoneyDashboard({
       />
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Dashboard Content - Based on your provided screenshot */}
+
+        {/* Search and Filter Section */}
+      <View style={styles.searchFilterContainer}>
+        <View style={styles.searchContainer}>
+          <View style={styles.searchIconContainer}>
+            <Image
+              source={require('../../assets/icons/search.png')}
+              style={styles.searchIcon}
+              resizeMode="contain"
+            />
+          </View>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search here"
+            placeholderTextColor="#9CA3AF"
+            value={searchText}
+            onChangeText={setSearchText}
+          />
+        </View>
+        <TouchableOpacity style={styles.filterContainer} onPress={handleFilterPress}>
+          <Image
+            source={require('../../assets/icons/filter.png')}
+            style={styles.filterIcon}
+            resizeMode="contain"
+          />
+        </TouchableOpacity>
+      </View>
+
+
         <View style={styles.dashboardContent}>
           
-          {/* Stats Cards Row */}
-          <View style={styles.statsRow}>
-            {/* All Dues Card */}
-            <View style={styles.allDuesCard}>
-              <Text style={styles.cardAmount}>₹8,99,450</Text>
-              <Text style={styles.cardLabel}>All Dues</Text>
-              <Text style={styles.cardCurrency}>₹</Text>
-            </View>
-            
-            {/* Current Dues Card */}
-            <View style={styles.currentDuesCard}>
-              <Text style={styles.cardAmountRed}>₹6,99,670</Text>
-              <Text style={styles.cardLabelSecondary}>Current Dues</Text>
-            </View>
-            
-            {/* Advance Dues Card */}
-            <View style={styles.advanceDuesCard}>
-              <Text style={styles.cardAmountRed}>₹2</Text>
-              <Text style={styles.cardLabelSecondary}>Advance Dues</Text>
-            </View>
+          {/* Monthly Summary Section */}
+          <View style={styles.summarySection}>
+            {/* Summary Cards */}
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              style={styles.summaryScrollView}
+              contentContainerStyle={styles.summaryCardsContainer}
+            >
+              {/* Today Collection Card - Dark */}
+              <View style={styles.summaryCardDark}>
+                <Text style={styles.cardAmountDark}>₹8,99,450</Text>
+                <View style={styles.rupeeIconContainer}>
+                  <Image 
+                    source={require('../../assets/Frame.png')} 
+                    style={styles.FrameIconImage}
+                    resizeMode="contain"
+                  />
+                </View>
+                <Text style={styles.cardLabelDark}>Today's Collection</Text>
+              </View>
+
+              {/* Collection This Month Card */}
+              <View style={styles.summaryCardLight}>
+                <Text style={styles.cardAmountLight}>₹6,99,670</Text>
+                <Text style={styles.cardLabelLight}>Collection in {getCurrentMonth()}</Text>
+              </View>
+
+              {/* Pending Amount Card */}
+              <View style={styles.summaryCardLight}>
+                <Text style={styles.cardAmountLighta}>₹2,99,780</Text>
+                <Text style={styles.cardLabelLight}>{getCurrentMonth()} Dues Collection</Text>
+              </View>
+
+              {/* This Week Card */}
+              <View style={styles.summaryCardLight}>
+                <Text style={styles.cardAmountLight}>₹1,50,230</Text>
+                <Text style={styles.cardLabelLight}>{getCurrentMonth()} Electricity Collection</Text>
+              </View>
+
+              {/* Yesterday Card */}
+              <View style={styles.summaryCardLight}>
+                <Text style={styles.cardAmountLight}>₹45,670</Text>
+                <Text style={styles.cardLabelLight}>{getCurrentMonth()} Rent Collection</Text>
+              </View>
+
+              {/* Last Month Card */}
+              <View style={styles.summaryCardLight}>
+                <Text style={styles.cardAmountLight}>₹3,20,450</Text>
+                <Text style={styles.cardLabelLight}>{getCurrentMonth()} Deposit Collection</Text>
+              </View>
+
+              {/* Advance Paid Card */}
+              <View style={styles.summaryCardLight}>
+                <Text style={styles.cardAmountLight}>₹89,320</Text>
+                <Text style={styles.cardLabelLight}>{getCurrentMonth()} Last Fine Collection</Text>
+              </View>
+
+              {/* Due Amount Card */}
+              <View style={styles.summaryCardLight}>
+                <Text style={styles.cardAmountLight}>₹67,890</Text>
+                <Text style={styles.cardLabelLight}>{getCurrentMonth()} Advance Collection</Text>
+              </View>
+            </ScrollView>
           </View>
 
           {/* Property Section */}
@@ -245,85 +331,198 @@ export default function MoneyDashboard({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: '#FFFFFF',
   },
   content: {
     flex: 1,
-    top: screenHeight * 0.005, // Reduced top margin since MoneyNav now has margin bottom
+    backgroundColor: '#F9F9F9',
+  },
+  searchFilterContainer: {
+    width: screenWidth * 0.78,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: screenWidth * 0.0472,
+    marginTop: screenHeight * 0.02,
+    marginBottom: screenHeight * 0.015,
+    height: screenHeight * 0.055,
+    borderRadius: 22,
+    borderWidth: 0.75,
+    borderColor: '#000000',
+    backgroundColor: '#FFFFFF',
+  },
+  searchContainer: {
+    width: screenWidth * 0.78,
+    height: screenHeight * 0.057,
+    backgroundColor: '#F2F2F31A',
+    borderWidth: 0.5,
+    borderColor: '#D8D8ED',
+    borderRadius: 22,
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  searchIconContainer: {
+    width: screenWidth * 0.094,
+    height: screenHeight * 0.0425,
+    left: screenWidth * 0.0167,
+    borderRadius: 19,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#000'
+  },
+  searchIcon: {
+    width: screenWidth * 0.0695,
+    height: screenHeight * 0.0312,
+    tintColor: '#fff',
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 15,
+    color: '#000000',
+    fontFamily: 'Montserrat-Regular',
+    paddingVertical: 0,
+    marginLeft: 8,
+  },
+  filterContainer: {
+    width: screenWidth * 0.12,
+    height: screenHeight * 0.055,
+    left: screenWidth * 0.8,
+    borderWidth: 0.75,
+    borderColor: '#000',
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'absolute',
+  },
+  filterIcon: {
+    width: screenWidth * 0.065,
+    height: screenHeight * 0.025,
+    tintColor: '#000',
   },
   dashboardContent: {
-    paddingHorizontal: screenWidth * 0.04,
-    paddingTop: screenHeight * 0.02,
+    paddingHorizontal: screenWidth * 0.05,
+    paddingTop: screenHeight * 0.002,
   },
-  statsRow: {
-    flexDirection: 'row',
-    marginBottom: screenHeight * 0.02,
-    gap: screenWidth * 0.03,
+  summarySection: {
+    marginBottom: screenHeight*0.02,
   },
-  allDuesCard: {
-    flex: 1.2,
+  summaryScrollView: {
+    marginHorizontal: -(screenWidth*0.055),
+  },
+  summaryCardsContainer: {
+    paddingHorizontal: screenWidth*0.055,
+    paddingRight: screenWidth*0.033,
+  },
+  summaryCardDark: {
+    width: screenWidth*0.43,
+    height: screenHeight*0.115,
     backgroundColor: '#242424',
-    borderRadius: 16,
-    padding: screenWidth * 0.04,
-    minHeight: screenHeight * 0.12,
-    justifyContent: 'center',
+    borderRadius: 8,
+    borderWidth: 1.1,
+    borderColor: '#EAE7E7',
+    padding: screenWidth*0.044,
+    marginRight: screenWidth*0.033,
+    shadowColor: '#171A1F',
+    shadowOffset: {
+      width: 0,
+      height: 0,
+    },
+    shadowOpacity: 0.07,
+    shadowRadius: 1,
+    elevation: 2,
     position: 'relative',
   },
-  currentDuesCard: {
-    flex: 1,
+  summaryCardLight: {
+    width: screenWidth*0.43,
+    height: screenHeight*0.115,
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: screenWidth * 0.04,
-    minHeight: screenHeight * 0.12,
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#E5E5E5',
+    borderRadius: 8,
+    borderWidth: 1.1,
+    borderColor: '#EAE7E7',
+    padding: screenWidth*0.044,
+    marginRight: screenWidth*0.033,
+    shadowColor: '#171A1F',
+    shadowOffset: {
+      width: 0,
+      height: 0,
+    },
+    shadowOpacity: 0.07,
+    shadowRadius: 1,
+    elevation: 2,
+    position: 'relative',
   },
-  advanceDuesCard: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: screenWidth * 0.04,
-    minHeight: screenHeight * 0.12,
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#E5E5E5',
-  },
-  cardAmount: {
-    fontSize: screenWidth * 0.045,
+  cardAmountDark: {
+    fontSize: 22,
     fontWeight: '700',
     color: '#FFD600',
     fontFamily: 'Inter-Bold',
-    marginBottom: screenHeight * 0.005,
+    lineHeight: screenHeight*0.04,
+    marginBottom: screenHeight*0.005,
+    width:screenWidth*0.255,
+    height:screenHeight*0.04,
+    top:-(screenHeight*0.0063)
   },
-  cardAmountRed: {
-    fontSize: screenWidth * 0.045,
+  cardAmountLight: {
+    fontSize: 22,
     fontWeight: '700',
-    color: '#FF4444',
+    color: '#33B94D',
     fontFamily: 'Inter-Bold',
-    marginBottom: screenHeight * 0.005,
+    lineHeight: screenHeight*0.04,
+    marginBottom: screenHeight*0.005,
+    width:screenWidth*0.255,
+    height:screenHeight*0.04,
+    top:-(screenHeight*0.0063)
   },
-  cardLabel: {
-    fontSize: screenWidth * 0.032,
-    fontWeight: '500',
-    color: '#FFFFFF',
-    fontFamily: 'Roboto-Medium',
-  },
-  cardLabelSecondary: {
-    fontSize: screenWidth * 0.032,
-    fontWeight: '500',
-    color: '#666666',
-    fontFamily: 'Roboto-Medium',
-  },
-  cardCurrency: {
+  cardLabelDark: {
+    fontSize: 13,
+    fontWeight: '400',
+    color: '#FFF',
+    fontFamily: 'Montserrat-Regular',
+    lineHeight: screenHeight*0.02,
     position: 'absolute',
-    right: screenWidth * 0.04,
-    top: screenHeight * 0.02,
-    fontSize: screenWidth * 0.08,
+    bottom: screenHeight*0.02,
+    left: screenWidth*0.044,
+    width: screenWidth*0.183,
+  },
+  cardLabelLight: {
+    fontSize: 13,
+    fontWeight: '400',
+    color: '#000',
+    fontFamily: 'Montserrat-Regular',
+    lineHeight: screenHeight*0.02,
+    position: 'absolute',
+    bottom: screenHeight*0.02,
+    left: screenWidth*0.044,
+    width: screenWidth*0.361,
+  },
+  cardAmountLighta: {
+    fontSize: 22,
     fontWeight: '700',
-    color: '#FFFFFF',
-    opacity: 0.3,
+    color: '#EF1D1D',
     fontFamily: 'Inter-Bold',
+    lineHeight: screenHeight*0.04,
+    marginBottom: screenHeight*0.005,
+    width:screenWidth*0.255,
+    height:screenHeight*0.04,
+    top:-(screenHeight*0.0063)
+  },
+  rupeeIconContainer: {
+    position: 'absolute',
+    top: screenHeight*0.055,
+    right: screenWidth*0.055,
+    transform: [{ rotate: '-0.03deg' }],
+  },
+  rupeeIcon: {
+    fontSize: 32,
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    opacity: 0.2,
+  },
+  FrameIconImage: {
+    width: screenWidth*0.117,
+    height: screenHeight*0.065,
+    tintColor: '#FFF',
+    left:screenWidth*0.05
   },
   propertySection: {
     backgroundColor: '#FFFFFF',
