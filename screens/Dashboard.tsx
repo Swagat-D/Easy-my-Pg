@@ -17,6 +17,7 @@ import BottomTabNavigator from './common/Tab';
 import MainPropertyScreen from './MainProperty';
 import TenantsScreen from './TenantsScreen';
 import AddPropertyScreen from './AddPropertyScreen';
+import MoneyContainer from './Money/MoneyContainer';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -32,7 +33,7 @@ export default function DashboardScreen({
   onPropertyPress
 }: DashboardScreenProps) {
   const [activeTab, setActiveTab] = useState('home');
-  const [currentScreen, setCurrentScreen] = useState<'property' | 'dashboard' | 'tenants' | 'addProperty'>('dashboard');
+  const [currentScreen, setCurrentScreen] = useState<'property' | 'dashboard' | 'tenants' | 'addProperty' | 'money'>('dashboard');
   const [searchText, setSearchText] = useState('');
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const slideInterval = useRef<NodeJS.Timeout | null>(null);
@@ -106,6 +107,8 @@ export default function DashboardScreen({
       setCurrentScreen('property');
     } else if (tabId === 'tenants') {
       setCurrentScreen('tenants');
+    } else if (tabId === 'money') {
+      setCurrentScreen('money');
     } else if (tabId === 'home') {
       setCurrentScreen('dashboard');
     }
@@ -142,6 +145,8 @@ export default function DashboardScreen({
             setCurrentScreen('property');
           } else if (tabId === 'tenants') {
             setCurrentScreen('tenants');
+          } else if (tabId === 'money') {
+            setCurrentScreen('money');
           } else if (tabId === 'home') {
             setCurrentScreen('dashboard');
           }
@@ -166,6 +171,8 @@ export default function DashboardScreen({
             setCurrentScreen('dashboard');
           } else if (tabId === 'property') {
             setCurrentScreen('property');
+          } else if (tabId === 'money') {
+            setCurrentScreen('money');
           } else if (tabId === 'addProperty') {
             setCurrentScreen('addProperty');
           }
@@ -190,6 +197,34 @@ export default function DashboardScreen({
             setCurrentScreen('dashboard');
           } else if (tabId === 'tenants') {
             setCurrentScreen('tenants');
+          } else if (tabId === 'money') {
+            setCurrentScreen('money');
+          } else if (tabId === 'addProperty') {
+            setCurrentScreen('addProperty');
+          }
+        }}
+        onHomePress={() => {
+          setActiveTab('home');
+          setCurrentScreen('dashboard');
+        }}
+      />
+    );
+  }
+
+  if (currentScreen === 'money') {
+    return (
+      <MoneyContainer 
+        activeTab={activeTab}
+        onTabPress={(tabId) => {
+          setActiveTab(tabId);
+          if (tabId === 'property') {
+            setCurrentScreen('property');
+          } else if (tabId === 'home') {
+            setCurrentScreen('dashboard');
+          } else if (tabId === 'tenants') {
+            setCurrentScreen('tenants');
+          } else if (tabId === 'money') {
+            setCurrentScreen('money');
           } else if (tabId === 'addProperty') {
             setCurrentScreen('addProperty');
           }
