@@ -52,7 +52,6 @@ export default function Navbar({
     if (onAddPropertyPress) {
       onAddPropertyPress();
     } else {
-      // Fallback to alert if no callback provided
       Alert.alert(
         'Add Property',
         'Navigate to Add Property screen',
