@@ -18,10 +18,16 @@
         "foregroundImage": "./assets/logo.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.swagat1212.Easymypg"
     },
     "web": {
       "favicon": "./assets/logo.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "3aacdd1c-b0de-45c1-9116-66c12e80af15"
+      }
     }
   }
 }
