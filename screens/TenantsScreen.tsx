@@ -37,6 +37,7 @@ interface TenantsScreenProps {
   onHomePress?: () => void;
   activeTab?: string;
   onAddTenantPress?: () => void;
+  onTenantProfilePress?: (tenant: Tenant) => void;
 }
 
 export default function TenantsScreen({
@@ -45,27 +46,24 @@ export default function TenantsScreen({
   onTabPress,
   onHomePress,
   activeTab = 'tenants',
-  onAddTenantPress
+  onAddTenantPress,
+  onTenantProfilePress
 }: TenantsScreenProps) {
   const [searchText, setSearchText] = useState('');
   const [selectedRoom, setSelectedRoom] = useState<string>('All Rooms');
   
-  // Create animated values for each tenant card
   const animatedValues = useRef<{[key: string]: Animated.Value}>({});
   
-  // Floating button position
   const floatingButtonPosition = useRef(new Animated.ValueXY({
-    x: screenWidth - 80, // Start position from right
-    y: screenHeight - 200, // Start position from bottom
+    x: screenWidth - 80, 
+    y: screenHeight - 200, 
   })).current;
   
-  // Track current position for boundary checking
   const [currentPosition, setCurrentPosition] = useState({
     x: screenWidth - 80,
     y: screenHeight - 200,
   });
 
-  // Sample tenant data
   const tenantsData: Tenant[] = [
     {
       id: '1',
@@ -169,22 +167,21 @@ export default function TenantsScreen({
     console.log('Selected room:', room);
   };
 
-  // Filter tenants based on selected room
   const filteredTenants = selectedRoom === 'All Rooms' 
     ? tenantsData 
     : tenantsData.filter(tenant => tenant.room === selectedRoom);
 
   const handleAddTenant = () => {
     console.log('Add tenant for room:', selectedRoom);
-    // Navigate to AddTenantScreen
     if (onAddTenantPress) {
       onAddTenantPress();
     }
   };
 
   const resetCardPosition = (tenantId: string) => {
-    Animated.spring(getAnimatedValue(tenantId), {
+    Animated.timing(getAnimatedValue(tenantId), {
       toValue: 0,
+      duration: 200,
       useNativeDriver: true,
     }).start();
   };
@@ -226,46 +223,54 @@ export default function TenantsScreen({
     resetCardPosition(tenantId);
   };
 
-  const createPanResponder = (tenantId: string) => {
-    const animatedValue = getAnimatedValue(tenantId);
+  const createPanResponder = (tenant: Tenant) => {
+    const animatedValue = getAnimatedValue(tenant.id);
+    let startTime = 0;
+    let startPosition = { x: 0, y: 0 };
     
     return PanResponder.create({
+      onStartShouldSetPanResponder: (evt) => true,
       onMoveShouldSetPanResponder: (evt, gestureState) => {
-        // Only respond to horizontal swipes
-        return Math.abs(gestureState.dx) > Math.abs(gestureState.dy) && Math.abs(gestureState.dx) > 10;
+        return Math.abs(gestureState.dx) > Math.abs(gestureState.dy) && Math.abs(gestureState.dx) > 20;
       },
-      onPanResponderGrant: () => {
-        // Extract current value and set offset for smooth continuation
+      onPanResponderGrant: (evt) => {
+        startTime = Date.now();
+        startPosition = { x: evt.nativeEvent.pageX, y: evt.nativeEvent.pageY };
         animatedValue.extractOffset();
       },
       onPanResponderMove: (evt, gestureState) => {
-        // Only allow left swipe (negative dx) - drag halfway
-        const maxDrag = -screenWidth * 0.45; // Drag halfway to the left
+        const maxDrag = -screenWidth * 0.45; 
         const newValue = Math.min(0, Math.max(gestureState.dx, maxDrag));
         animatedValue.setValue(newValue);
       },
       onPanResponderRelease: (evt, gestureState) => {
         animatedValue.flattenOffset();
         
-        // Determine if we should snap to open or closed position
-        const threshold = -screenWidth * 0.15; // Threshold for left swipe
-        const shouldOpen = gestureState.dx < threshold;
+        const duration = Date.now() - startTime;
+        const distance = Math.sqrt(gestureState.dx * gestureState.dx + gestureState.dy * gestureState.dy);
         
-        Animated.spring(animatedValue, {
-          toValue: shouldOpen ? -screenWidth * 0.45 : 0, // Snap to halfway left or closed
-          useNativeDriver: true,
-          tension: 100,
-          friction: 8,
-        }).start();
+        if (duration < 300 && distance < 15) {
+          if (onTenantProfilePress) {
+            onTenantProfilePress(tenant);
+          }
+          animatedValue.setValue(0);
+        } else {
+          const threshold = -screenWidth * 0.45; 
+          const shouldOpen = gestureState.dx < threshold;
+          
+          Animated.timing(animatedValue, {
+            toValue: shouldOpen ? -screenWidth * 0.45 : 0, 
+            duration: 200, 
+            useNativeDriver: true,
+          }).start();
+        }
       },
     });
   };
 
-  // Floating button pan responder
   const floatingButtonPanResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => true,
     onMoveShouldSetPanResponder: (evt, gestureState) => {
-      // Only start pan responder if the user moves significantly
       const threshold = 10;
       return Math.abs(gestureState.dx) > threshold || Math.abs(gestureState.dy) > threshold;
     },
@@ -282,32 +287,26 @@ export default function TenantsScreen({
     onPanResponderRelease: (evt, gestureState) => {
       floatingButtonPosition.flattenOffset();
       
-      // If it's a small movement, treat it as a tap
       const moveThreshold = 10;
       const isTap = Math.abs(gestureState.dx) < moveThreshold && Math.abs(gestureState.dy) < moveThreshold;
       
       if (isTap) {
-        // Handle tap - navigate to add tenant
         handleFloatingButtonPress();
         return;
       }
       
-      // Keep button within screen bounds for drag
       const buttonSize = 60;
       const margin = 10;
       
       let finalX = currentPosition.x + gestureState.dx;
       let finalY = currentPosition.y + gestureState.dy;
       
-      // Constrain X position
       if (finalX < margin) finalX = margin;
       if (finalX > screenWidth - buttonSize - margin) finalX = screenWidth - buttonSize - margin;
       
-      // Constrain Y position
-      if (finalY < margin + 100) finalY = margin + 100; // Account for navbar
-      if (finalY > screenHeight - buttonSize - margin - 100) finalY = screenHeight - buttonSize - margin - 100; // Account for bottom tab
+      if (finalY < margin + 100) finalY = margin + 100; 
+      if (finalY > screenHeight - buttonSize - margin - 100) finalY = screenHeight - buttonSize - margin - 100; 
       
-      // Update current position
       setCurrentPosition({ x: finalX, y: finalY });
       
       Animated.spring(floatingButtonPosition, {
@@ -319,7 +318,6 @@ export default function TenantsScreen({
 
   const handleFloatingButtonPress = () => {
     console.log('Floating button pressed');
-    // Navigate to AddTenantScreen
     if (onAddTenantPress) {
       onAddTenantPress();
     }
@@ -346,7 +344,7 @@ export default function TenantsScreen({
   };
 
   const renderTenantCard = (tenant: Tenant) => {
-    const panResponder = createPanResponder(tenant.id);
+    const panResponder = createPanResponder(tenant);
     
     return (
       <View key={tenant.id} style={styles.tenantCardContainer}>
@@ -867,16 +865,26 @@ const styles = StyleSheet.create({
     padding: screenWidth * 0.035,
     flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowColor: '#171A1F',
+    shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.08,
-    shadowRadius: 8,
+    shadowRadius: 1,
     elevation: 4,
-    zIndex: 2,
+    zIndex: 10,
+    position: 'relative',
   },
   tenantCardContainer: {
     position: 'relative',
     marginBottom: screenHeight * 0.02,
+    overflow: 'hidden', 
+    borderRadius: 12, 
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#171A1F',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.08,
+    shadowRadius: 1,
+    elevation: 1,
+    zIndex: 10,
   },
 
   actionPanel: {
@@ -891,7 +899,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingHorizontal: screenWidth * 0.015,
     paddingVertical: screenHeight * 0.008,
-    zIndex: 1,
+    zIndex: 0, 
     justifyContent: 'space-between',
     alignItems: 'center',
   },

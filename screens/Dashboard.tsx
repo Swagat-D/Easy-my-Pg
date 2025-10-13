@@ -18,9 +18,21 @@ import MainPropertyScreen from './MainProperty';
 import TenantsScreen from './TenantsScreen';
 import AddPropertyScreen from './AddPropertyScreen';
 import AddTenantScreen from './AddTenantScreen';
+import ProfileDetailsScreen from './ProfileDetailsScreen';
 import MoneyContainer from './Money/MoneyContainer';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+
+interface Tenant {
+  id: string;
+  name: string;
+  profileImage?: string;
+  room: string;
+  underNotice: boolean;
+  rentDue: boolean;
+  joinedDate: string;
+  mobile: string;
+}
 
 interface DashboardScreenProps {
   userName?: string;
@@ -34,8 +46,9 @@ export default function DashboardScreen({
   onPropertyPress
 }: DashboardScreenProps) {
   const [activeTab, setActiveTab] = useState('home');
-  const [currentScreen, setCurrentScreen] = useState<'property' | 'dashboard' | 'tenants' | 'addProperty' | 'money' | 'addTenant'>('dashboard');
+  const [currentScreen, setCurrentScreen] = useState<'property' | 'dashboard' | 'tenants' | 'addProperty' | 'money' | 'addTenant' | 'profileDetails'>('dashboard');
   const [addTenantSource, setAddTenantSource] = useState<'property' | 'tenants' | 'dashboard'>('tenants');
+  const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
   const [searchText, setSearchText] = useState('');
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const slideInterval = useRef<NodeJS.Timeout | null>(null);
@@ -101,6 +114,16 @@ export default function DashboardScreen({
       setActiveTab('property');
       setCurrentScreen('property');
     }
+  };
+
+  const handleTenantProfilePress = (tenant: Tenant) => {
+    setSelectedTenant(tenant);
+    setCurrentScreen('profileDetails');
+  };
+
+  const handleBackFromProfile = () => {
+    setSelectedTenant(null);
+    setCurrentScreen('tenants');
   };
 
   const handleTabPress = (tabId: string) => {
@@ -218,6 +241,7 @@ export default function DashboardScreen({
           setAddTenantSource('tenants');
           setCurrentScreen('addTenant');
         }}
+        onTenantProfilePress={handleTenantProfilePress}
       />
     );
   }
@@ -254,6 +278,23 @@ export default function DashboardScreen({
         onBackPress={() => {
           setCurrentScreen(addTenantSource);
         }}
+      />
+    );
+  }
+
+  if (currentScreen === 'profileDetails' && selectedTenant) {
+    return (
+      <ProfileDetailsScreen 
+        tenantData={{
+          name: selectedTenant.name,
+          room: selectedTenant.room,
+          rent: '₹0', // Default as not in Tenant interface
+          deposit: '₹0', // Default as not in Tenant interface
+          doj: selectedTenant.joinedDate || '04 Oct 2025',
+          dol: '04 Jul 2026', // Default end date
+          profileImage: selectedTenant.profileImage,
+        }}
+        onBackPress={handleBackFromProfile}
       />
     );
   }
