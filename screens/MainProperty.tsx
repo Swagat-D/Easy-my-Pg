@@ -23,6 +23,7 @@ interface MainPropertyScreenProps {
   onTabPress?: (tabId: string) => void;
   onHomePress?: () => void;
   activeTab?: string;
+  onAddTenantPress?: () => void;
 }
 
 export default function MainPropertyScreen({
@@ -30,7 +31,8 @@ export default function MainPropertyScreen({
   propertyName = 'Kalyani Nagar',
   onTabPress,
   onHomePress,
-  activeTab = 'property'
+  activeTab = 'property',
+  onAddTenantPress
 }: MainPropertyScreenProps) {
   const [searchText, setSearchText] = useState('');
   const [selectedFloor, setSelectedFloor] = useState('Ground Floor');
@@ -218,6 +220,10 @@ export default function MainPropertyScreen({
 
   const handleAddTenant = (roomId: string) => {
     console.log('Add tenant for room:', roomId);
+    // Navigate to AddTenantScreen
+    if (onAddTenantPress) {
+      onAddTenantPress();
+    }
   };
 
   const handleSharePress = (roomId: string) => {

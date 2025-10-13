@@ -36,6 +36,7 @@ interface TenantsScreenProps {
   onTabPress?: (tabId: string) => void;
   onHomePress?: () => void;
   activeTab?: string;
+  onAddTenantPress?: () => void;
 }
 
 export default function TenantsScreen({
@@ -43,7 +44,8 @@ export default function TenantsScreen({
   propertyName = 'Kalyani Nagar',
   onTabPress,
   onHomePress,
-  activeTab = 'tenants'
+  activeTab = 'tenants',
+  onAddTenantPress
 }: TenantsScreenProps) {
   const [searchText, setSearchText] = useState('');
   const [selectedRoom, setSelectedRoom] = useState<string>('All Rooms');
@@ -174,7 +176,10 @@ export default function TenantsScreen({
 
   const handleAddTenant = () => {
     console.log('Add tenant for room:', selectedRoom);
-    // Add your navigation or modal logic here
+    // Navigate to AddTenantScreen
+    if (onAddTenantPress) {
+      onAddTenantPress();
+    }
   };
 
   const resetCardPosition = (tenantId: string) => {
@@ -259,7 +264,11 @@ export default function TenantsScreen({
   // Floating button pan responder
   const floatingButtonPanResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => true,
-    onMoveShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: (evt, gestureState) => {
+      // Only start pan responder if the user moves significantly
+      const threshold = 10;
+      return Math.abs(gestureState.dx) > threshold || Math.abs(gestureState.dy) > threshold;
+    },
     onPanResponderGrant: () => {
       floatingButtonPosition.setOffset({
         x: currentPosition.x,
@@ -273,7 +282,17 @@ export default function TenantsScreen({
     onPanResponderRelease: (evt, gestureState) => {
       floatingButtonPosition.flattenOffset();
       
-      // Keep button within screen bounds
+      // If it's a small movement, treat it as a tap
+      const moveThreshold = 10;
+      const isTap = Math.abs(gestureState.dx) < moveThreshold && Math.abs(gestureState.dy) < moveThreshold;
+      
+      if (isTap) {
+        // Handle tap - navigate to add tenant
+        handleFloatingButtonPress();
+        return;
+      }
+      
+      // Keep button within screen bounds for drag
       const buttonSize = 60;
       const margin = 10;
       
@@ -300,8 +319,10 @@ export default function TenantsScreen({
 
   const handleFloatingButtonPress = () => {
     console.log('Floating button pressed');
-    // Add your floating button action here
-    handleAddTenant();
+    // Navigate to AddTenantScreen
+    if (onAddTenantPress) {
+      onAddTenantPress();
+    }
   };
 
   const renderStatsCard = (item: any, index: number) => {
@@ -654,8 +675,8 @@ export default function TenantsScreen({
       >
         <TouchableOpacity
           style={styles.floatingButtonTouchable}
-          onPress={handleFloatingButtonPress}
           activeOpacity={0.8}
+          onPress={handleFloatingButtonPress}
         >
           <Text style={styles.floatingButtonText}>+</Text>
         </TouchableOpacity>

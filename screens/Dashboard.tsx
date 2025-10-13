@@ -17,6 +17,7 @@ import BottomTabNavigator from './common/Tab';
 import MainPropertyScreen from './MainProperty';
 import TenantsScreen from './TenantsScreen';
 import AddPropertyScreen from './AddPropertyScreen';
+import AddTenantScreen from './AddTenantScreen';
 import MoneyContainer from './Money/MoneyContainer';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -33,7 +34,8 @@ export default function DashboardScreen({
   onPropertyPress
 }: DashboardScreenProps) {
   const [activeTab, setActiveTab] = useState('home');
-  const [currentScreen, setCurrentScreen] = useState<'property' | 'dashboard' | 'tenants' | 'addProperty' | 'money'>('dashboard');
+  const [currentScreen, setCurrentScreen] = useState<'property' | 'dashboard' | 'tenants' | 'addProperty' | 'money' | 'addTenant'>('dashboard');
+  const [addTenantSource, setAddTenantSource] = useState<'property' | 'tenants' | 'dashboard'>('tenants');
   const [searchText, setSearchText] = useState('');
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const slideInterval = useRef<NodeJS.Timeout | null>(null);
@@ -181,6 +183,11 @@ export default function DashboardScreen({
           setActiveTab('home');
           setCurrentScreen('dashboard');
         }}
+        onAddTenantPress={() => {
+          setCurrentScreen('dashboard');
+          setAddTenantSource('property');
+          setCurrentScreen('addTenant');
+        }}
       />
     );
   }
@@ -207,6 +214,10 @@ export default function DashboardScreen({
           setActiveTab('home');
           setCurrentScreen('dashboard');
         }}
+        onAddTenantPress={() => {
+          setAddTenantSource('tenants');
+          setCurrentScreen('addTenant');
+        }}
       />
     );
   }
@@ -232,6 +243,16 @@ export default function DashboardScreen({
         onHomePress={() => {
           setActiveTab('home');
           setCurrentScreen('dashboard');
+        }}
+      />
+    );
+  }
+
+  if (currentScreen === 'addTenant') {
+    return (
+      <AddTenantScreen 
+        onBackPress={() => {
+          setCurrentScreen(addTenantSource);
         }}
       />
     );
@@ -359,7 +380,14 @@ export default function DashboardScreen({
           <View style={styles.quickActionsSection}>
             <Text style={styles.sectionTitle}>Quick Actions</Text>
             <View style={styles.quickActions}>
-              <TouchableOpacity style={styles.actionButton}>
+              <TouchableOpacity 
+                style={styles.actionButton}
+                onPress={() => {
+                  setAddTenantSource('dashboard');
+                  setCurrentScreen('addTenant');
+                }}
+                activeOpacity={0.7}
+              >
                 <View style={styles.actionIcon}>
                   <Image 
                     source={require('../assets/icons/user-plus.png')} 
@@ -370,7 +398,14 @@ export default function DashboardScreen({
                 <Text style={styles.actionText}>Add Tenant</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.actionButton}>
+              <TouchableOpacity 
+                style={styles.actionButton}
+                onPress={() => {
+                  setActiveTab('money');
+                  setCurrentScreen('money');
+                }}
+                activeOpacity={0.7}
+              >
                 <View style={styles.actionIcon}>
                   <Image 
                     source={require('../assets/icons/banknote.png')} 
@@ -381,7 +416,14 @@ export default function DashboardScreen({
                 <Text style={styles.actionText}>Record Payments</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.actionButton}>
+              <TouchableOpacity 
+                style={styles.actionButton}
+                onPress={() => {
+                  console.log('Notice Board pressed');
+                  // Add notice board navigation here
+                }}
+                activeOpacity={0.7}
+              >
                 <View style={styles.actionIcon}>
                   <Image 
                     source={require('../assets/icons/megaphone.png')} 
@@ -392,7 +434,14 @@ export default function DashboardScreen({
                 <Text style={styles.actionText}>Notice Board</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.actionButton}>
+              <TouchableOpacity 
+                style={styles.actionButton}
+                onPress={() => {
+                  console.log('Add Leads pressed');
+                  // Add leads navigation here
+                }}
+                activeOpacity={0.7}
+              >
                 <View style={styles.actionIcon}>
                   <Image 
                     source={require('../assets/icons/door-open.png')} 
@@ -403,7 +452,14 @@ export default function DashboardScreen({
                 <Text style={styles.actionText}>Add Leads</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.actionButton}>
+              <TouchableOpacity 
+                style={styles.actionButton}
+                onPress={() => {
+                  console.log('Complaints pressed');
+                  // Add complaints navigation here
+                }}
+                activeOpacity={0.7}
+              >
                 <View style={styles.actionIcon}>
                   <Image 
                     source={require('../assets/icons/property.png')} 
@@ -781,9 +837,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   actionButton: {
-    width: '18%',
+    width: '19%',
     alignItems: 'center',
     marginBottom: screenHeight*0.02,
+    paddingVertical: screenHeight*0.01,
+    paddingHorizontal: screenWidth*0.005,
   },
   actionIcon: {
     width: screenWidth*0.156,
@@ -797,7 +855,7 @@ const styles = StyleSheet.create({
     borderColor: '#E0E0E0',
   },
   actionIconImage: {
-    width: screenWidth*0.67,
+    width: screenWidth*0.067,
     height: screenHeight*0.03,
     tintColor: '#666666',
   },
