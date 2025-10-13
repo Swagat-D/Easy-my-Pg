@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     justifyContent: 'flex-end',
-    backgroundColor: 'transparent',
+    backgroundColor: 'rgba(0,0,0,0.3)',
   },
   container: {
     backgroundColor: '#fff',
@@ -115,14 +115,14 @@ const styles = StyleSheet.create({
     height: Math.max(36, screenWidth * 0.09),
     borderRadius: Math.max(18, screenWidth * 0.045),
     borderWidth: 2,
-    borderColor: '#F7E9A0',
+    borderColor: '#f5d11dff',
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#fff',
   },
   closeX: {
     fontSize: Math.max(24, screenWidth * 0.06),
-    color: '#F7E9A0',
+    color: '#f5d11dff',
     fontWeight: 'bold',
   },
   contentBox: {

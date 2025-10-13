@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import TenantVerificationModal, { VerificationStatus } from './common/TenantVerificationModal';
+import ShiftTenantModal, { TenantData } from './common/ShiftTenantModal';
+import RemoveTenantModal from './common/RemoveTenantModal';
 import {
   StyleSheet,
   Text,
@@ -25,6 +27,7 @@ interface ProfileDetailsScreenProps {
     deposit: string;
     doj: string;
     dol: string;
+    phone?: string;
     profileImage?: string;
   };
 }
@@ -38,8 +41,14 @@ export default function ProfileDetailsScreen({
     deposit: '₹0',
     doj: '04 Oct 2025',
     dol: '04 Jul 2026',
+    phone: '+919876543210',
   }
 }: ProfileDetailsScreenProps) {
+  // Ensure we always have a phone number
+  const completeTenanData = {
+    ...tenantData,
+    phone: tenantData.phone || '+919876543210',
+  };
   const [verificationStatus, setVerificationStatus] = useState({
     verification: true,
     documents: false,
@@ -61,6 +70,8 @@ export default function ProfileDetailsScreen({
   });
 
   const [isVerificationModalVisible, setIsVerificationModalVisible] = useState(false);
+  const [isShiftModalVisible, setIsShiftModalVisible] = useState(false);
+  const [isRemoveModalVisible, setIsRemoveModalVisible] = useState(false);
 
   const handleRentBook = () => {
     console.log('Rent Book pressed');
@@ -71,23 +82,25 @@ export default function ProfileDetailsScreen({
   };
 
   const handleShiftTenant = () => {
-    console.log('Shift Tenant pressed');
+    setIsShiftModalVisible(true);
   };
 
   const handleRemoveTenant = () => {
-    console.log('Remove Tenant pressed');
+    setIsRemoveModalVisible(true);
   };
 
   const handleWhatsApp = () => {
-    console.log('WhatsApp pressed');
-    // Open WhatsApp with tenant's number
-    // Linking.openURL(`whatsapp://send?phone=${tenantPhone}`);
+    const phoneNumber = completeTenanData.phone.replace(/[^0-9]/g, '');
+    const whatsappUrl = `whatsapp://send?phone=${phoneNumber}`;
+    
+    Linking.openURL(whatsappUrl).catch(() => {
+      Linking.openURL(`https://wa.me/${phoneNumber}`);
+    });
   };
 
   const handleCallTenant = () => {
-    console.log('Call Tenant pressed');
-    // Make a phone call to tenant
-    // Linking.openURL(`tel:${tenantPhone}`);
+    const callUrl = `tel:${completeTenanData.phone}`;
+    Linking.openURL(callUrl);
   };
 
   const renderStatusIcon = (status: boolean) => {
@@ -155,6 +168,31 @@ export default function ProfileDetailsScreen({
     console.log('Rental Agreement verification completed');
   };
 
+  // Shift Modal Handlers
+  const handleCloseShiftModal = () => {
+    setIsShiftModalVisible(false);
+  };
+
+  const handleSelectNewProperty = () => {
+    console.log('Select New Property pressed');
+    // Add navigation to property selection screen
+    setIsShiftModalVisible(false);
+  };
+
+  const handleSelectNewRoom = () => {
+    console.log('Select New Room pressed');
+    setIsShiftModalVisible(false);
+  };
+
+  const handleCloseRemoveModal = () => {
+    setIsRemoveModalVisible(false);
+  };
+
+  const handleMoveOut = (moveOutDate: Date) => {
+    console.log('Move out date selected:', moveOutDate);
+    setIsRemoveModalVisible(false);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar backgroundColor="#FED232" barStyle="dark-content" />
@@ -182,8 +220,8 @@ export default function ProfileDetailsScreen({
               />
             </View>
             <View style={styles.profileTextContainer}>
-              <Text style={styles.tenantName}>{tenantData.name}</Text>
-              <Text style={styles.roomNumber}>Room: {tenantData.room}</Text>
+              <Text style={styles.tenantName}>{completeTenanData.name}</Text>
+              <Text style={styles.roomNumber}>Room: {completeTenanData.room}</Text>
             </View>
           </View>
 
@@ -211,19 +249,19 @@ export default function ProfileDetailsScreen({
         <View style={styles.detailsSection}>
           <View style={styles.detailsRow}>
             <View style={styles.detailItem}>
-              <Text style={styles.detailLabel}>Rent : <Text style={styles.detailValue}>{tenantData.rent}/Monthly</Text></Text>
+              <Text style={styles.detailLabel}>Rent : <Text style={styles.detailValue}>{completeTenanData.rent}/Monthly</Text></Text>
             </View>
             <View style={styles.detailItema}>
-              <Text style={styles.detailLabel}>Deposit : <Text style={styles.detailValue}>{tenantData.deposit}</Text></Text>
+              <Text style={styles.detailLabel}>Deposit : <Text style={styles.detailValue}>{completeTenanData.deposit}</Text></Text>
             </View>
           </View>
 
           <View style={styles.detailsRow}>
             <View style={styles.detailItem}>
-              <Text style={styles.detailLabel}>DOJ : <Text style={styles.detailValue}>{tenantData.doj}</Text></Text>
+              <Text style={styles.detailLabel}>DOJ : <Text style={styles.detailValue}>{completeTenanData.doj}</Text></Text>
             </View>
             <View style={styles.detailItema}>
-              <Text style={styles.detailLabel}>DOL : <Text style={styles.detailValue}>{tenantData.dol}</Text></Text>
+              <Text style={styles.detailLabel}>DOL : <Text style={styles.detailValue}>{completeTenanData.dol}</Text></Text>
             </View>
           </View>
         </View>
@@ -319,6 +357,23 @@ export default function ProfileDetailsScreen({
         onVerifyID={handleVerifyID}
         onVerifyAgreement={handleVerifyAgreement}
         verificationStatus={modalVerificationStatus}
+      />
+      <ShiftTenantModal
+        visible={isShiftModalVisible}
+        onClose={handleCloseShiftModal}
+        onSelectNewProperty={handleSelectNewProperty}
+        onSelectNewRoom={handleSelectNewRoom}
+        tenantData={{
+          name: completeTenanData.name,
+          room: completeTenanData.room,
+          property: 'Kalyani Nagar',
+        }}
+      />
+      <RemoveTenantModal
+        visible={isRemoveModalVisible}
+        onClose={handleCloseRemoveModal}
+        onMoveOut={handleMoveOut}
+        tenantName={completeTenanData.name}
       />
     </SafeAreaView>
   );
@@ -623,28 +678,28 @@ const styles = StyleSheet.create({
   },
   shiftButton: {
     flex: 1,
-    backgroundColor: '#E8F5E8',
+    backgroundColor: '#FFFFFF',
     borderRadius: Math.max(8, screenWidth * 0.02),
     paddingVertical: Math.max(8, screenHeight * 0.01),
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#25D366',
+    borderColor: '#FFC800',
   },
   removeButton: {
     flex: 1,
-    backgroundColor: '#FFEBEE',
+    backgroundColor: '#FFFFFF',
     borderRadius: Math.max(8, screenWidth * 0.02),
     paddingVertical: Math.max(8, screenHeight * 0.01),
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#EF1D1D',
+    borderColor: '#FF0000',
   },
   shiftButtonText: {
     fontSize: Math.max(12, Math.min(14, screenWidth * 0.01)),
     fontWeight: '500',
-    color: '#4CAF50',
+    color: '#000000',
     fontFamily: 'Montserrat-Medium',
   },
   removeButtonText: {
