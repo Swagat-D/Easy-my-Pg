@@ -893,7 +893,7 @@ const styles = StyleSheet.create({
     right: 0,
     width: screenWidth * 0.45,
     height: '100%',
-    backgroundColor: '#FFD604',
+    backgroundColor: '#FFD600',
     borderTopRightRadius: 12,
     borderBottomRightRadius: 12,
     flexDirection: 'row',
