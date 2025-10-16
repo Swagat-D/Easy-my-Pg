@@ -23,6 +23,25 @@ import MoneyContainer from './Money/MoneyContainer';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
+// Responsive sizing helpers
+const responsiveSize = (size: number, dimension: 'width' | 'height' = 'height') => {
+  const baseWidth = 375; 
+  const baseHeight = 812; 
+  
+  if (dimension === 'width') {
+    return (size / baseWidth) * screenWidth;
+  }
+  return (size / baseHeight) * screenHeight;
+};
+
+const responsiveFontSize = (size: number) => {
+  const scale = screenWidth / 375;
+  const newSize = size * scale;
+  
+  // Ensure minimum and maximum font sizes
+  return Math.max(12, Math.min(newSize, size * 1.3));
+};
+
 interface Tenant {
   id: string;
   name: string;
@@ -50,9 +69,9 @@ export default function DashboardScreen({
   const [addTenantSource, setAddTenantSource] = useState<'property' | 'tenants' | 'dashboard'>('tenants');
   const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
   const [searchText, setSearchText] = useState('');
-  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
-  const slideInterval = useRef<NodeJS.Timeout | null>(null);
   const [showDashboard, setShowDashboard] = useState(false);
+  const [summaryExpanded, setSummaryExpanded] = useState(false);
+  const [selectedSummaryTab, setSelectedSummaryTab] = useState<'collection' | 'dues' | 'expenses'>('collection');
 
   const getCurrentMonth = () => {
     const months = [
@@ -60,51 +79,6 @@ export default function DashboardScreen({
       'July', 'August', 'September', 'October', 'November', 'December'
     ];
     return months[new Date().getMonth()];
-  };
-
-  const newsSlides = [
-    {
-      id: 1,
-      image: require('../assets/news.jpg'),
-      title: 'Quit Your Job, Start Your Co-Living!',
-      subtitle: 'Properties in Gurgaon',
-      tag: 'Back to Mumbai'
-    },
-    {
-      id: 2,
-      image: require('../assets/news.jpg'),
-      title: 'New Housing Policies 2024',
-      subtitle: 'Government Updates',
-      tag: 'Policy Changes'
-    },
-    {
-      id: 3,
-      image: require('../assets/news.jpg'),
-      title: 'Real Estate Market Trends',
-      subtitle: 'Investment Opportunities',
-      tag: 'Market Analysis'
-    }
-  ];
-
-  useEffect(() => {
-    slideInterval.current = setInterval(() => {
-      setCurrentSlideIndex((prevIndex) => 
-        prevIndex === newsSlides.length - 1 ? 0 : prevIndex + 1
-      );
-    }, 1800);
-
-    return () => {
-      if (slideInterval.current) {
-        clearInterval(slideInterval.current);
-      }
-    };
-  }, [newsSlides.length]);
-
-  // Handle manual slide navigation
-  const handleSlidePress = () => {
-    setCurrentSlideIndex((prevIndex) => 
-      prevIndex === newsSlides.length - 1 ? 0 : prevIndex + 1
-    );
   };
 
   const handlePropertyPress = () => {
@@ -288,10 +262,10 @@ export default function DashboardScreen({
         tenantData={{
           name: selectedTenant.name,
           room: selectedTenant.room,
-          rent: '₹0', // Default as not in Tenant interface
-          deposit: '₹0', // Default as not in Tenant interface
+          rent: '₹0',
+          deposit: '₹0',
           doj: selectedTenant.joinedDate || '04 Oct 2025',
-          dol: '04 Jul 2026', // Default end date
+          dol: '04 Jul 2026',
           profileImage: selectedTenant.profileImage,
         }}
         onBackPress={handleBackFromProfile}
@@ -313,10 +287,7 @@ export default function DashboardScreen({
           setActiveTab('property');
           setCurrentScreen('addProperty');
         }}
-      />
-
-      {/* Search Bar */}
-      
+      />      
       
       {/* Main Content */}
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -339,82 +310,137 @@ export default function DashboardScreen({
         {/* Dashboard Content Container */}
         <View style={styles.dashboardContent}>
           
-          {/* Monthly Summary Section */}
+          {/* All Property Section */}
+          <View style={styles.allPropertySection}>
+            <TouchableOpacity style={styles.allPropertyDropdown}>
+              <Text style={styles.allPropertyDropdownText}>All Property</Text>
+              <Image 
+                source={require('../assets/dropdown-arrow.png')} 
+                style={styles.allPropertyDropdownIcon}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+          </View>
+
+          {/* Summary Section */}
           <View style={styles.summarySection}>
-            <View style={styles.summaryHeader}>
-              <Text style={styles.summaryTitle}>{getCurrentMonth()} Summary</Text>
-              <TouchableOpacity style={styles.allPropertyButton}>
-                <Text style={styles.allPropertyText}>All Property</Text>
-                <Image 
-                  source={require('../assets/dropdown-arrow.png')} 
-                  style={styles.summaryDropdown}
-                  resizeMode="contain"
-                />
-              </TouchableOpacity>
-            </View>
-            
-            {/* Summary Cards */}
-            <ScrollView 
-              horizontal 
-              showsHorizontalScrollIndicator={false}
-              style={styles.summaryScrollView}
-              contentContainerStyle={styles.summaryCardsContainer}
-            >
-              {/* Today Collection Card - Dark */}
-              <View style={styles.summaryCardDark}>
-                <Text style={styles.cardAmountDark}>₹8,99,450</Text>
-                <View style={styles.rupeeIconContainer}>
-                  <Image 
-                    source={require('../assets/Frame.png')} 
-                    style={styles.FrameIconImage}
-                    resizeMode="contain"
-                  />
+            {!summaryExpanded ? (
+              // Collapsed View
+              <View style={styles.collapsedSummaryContainer}>
+                <View style={styles.collapsedNotch} />
+                <Text style={styles.collapsedTitle}>Today's Collection</Text>
+                <Text style={styles.collapsedAmount}>₹ 2,98,000</Text>
+                <Text style={styles.collapsedPercentage}>+0.6%</Text>
+                <Text style={styles.collapsedSubtext}>From last month</Text>
+                
+                <TouchableOpacity 
+                  style={styles.expandButton}
+                  onPress={() => setSummaryExpanded(true)}
+                >
+                  <View style={styles.expandIconCircle}>
+                    <Image 
+                      source={require('../assets/dropdown-arrow.png')} 
+                      style={styles.expandArrow}
+                      resizeMode="contain"
+                    />
+                  </View>
+                </TouchableOpacity>
                 </View>
-                <Text style={styles.cardLabelDark}>Today's Collection</Text>
-              </View>
+            ) : (
+              // Expanded View
+              <View style={styles.expandedSummaryContainer}>
+                <View style={styles.expandedNotch} />
+                <Text style={styles.expandedTitle}>
+                  {selectedSummaryTab === 'collection' ? 'Today\'s Collection' : 
+                   selectedSummaryTab === 'dues' ? 'This Month Dues' : 'Today Expenses'}
+                </Text>
+                
+                <Text style={styles.expandedAmount}>
+                  {selectedSummaryTab === 'collection' ? '₹ 2,98,000' : 
+                   selectedSummaryTab === 'dues' ? '₹ 52,365' : '₹ 6,99,670'}
+                </Text>
+                <Text style={styles.expandedPercentage}>+0.6%</Text>
+                <Text style={styles.expandedSubtext}>From last month</Text>
 
-              {/* Collection This Month Card */}
-              <View style={styles.summaryCardLight}>
-                <Text style={styles.cardAmountLight}>₹6,99,670</Text>
-                <Text style={styles.cardLabelLight}>Collection in {getCurrentMonth()}</Text>
-              </View>
+                {/* Tab Navigation */}
+                <View style={styles.tabContainer}>
+                  <TouchableOpacity 
+                    style={[styles.tabButton, selectedSummaryTab === 'dues' && styles.activeTabButton]}
+                    onPress={() => setSelectedSummaryTab('dues')}
+                  >
+                    <Text style={[styles.tabText, selectedSummaryTab === 'dues' && styles.activeTabText]}>Dues</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={[styles.tabButton, selectedSummaryTab === 'collection' && styles.activeTabButton]}
+                    onPress={() => setSelectedSummaryTab('collection')}
+                  >
+                    <Text style={[styles.tabText, selectedSummaryTab === 'collection' && styles.activeTabText]}>Collection</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={[styles.tabButton, selectedSummaryTab === 'expenses' && styles.activeTabButton]}
+                    onPress={() => setSelectedSummaryTab('expenses')}
+                  >
+                    <Text style={[styles.tabText, selectedSummaryTab === 'expenses' && styles.activeTabText]}>Expenses</Text>
+                  </TouchableOpacity>
+                </View>
 
-              {/* Pending Amount Card */}
-              <View style={styles.summaryCardLight}>
-                <Text style={styles.cardAmountLighta}>₹2,99,780</Text>
-                <Text style={styles.cardLabelLight}>{getCurrentMonth()} Dues Collection</Text>
-              </View>
+                {/* Horizontal Scrollable Cards */}
+                <ScrollView 
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={styles.horizontalCardsScrollView}
+                  contentContainerStyle={styles.horizontalCardsContainer}
+                >
+                  {selectedSummaryTab === 'collection' && [
+                    { amount: '₹2,98,000', label: 'Today Collection', color: '#4CAF50' },
+                    { amount: '₹6,99,670', label: 'This Month Collection', color: '#4CAF50' },
+                    { amount: '₹6,99,670', label: 'Previous Month Collection', color: '#4CAF50' },
+                    { amount: '₹6,99,670', label: 'This Month Electricity', color: '#4CAF50' },
+                    { amount: '₹6,99,670', label: 'Total Collection', color: '#4CAF50' }
+                  ].map((item, index) => (
+                    <View key={index} style={styles.horizontalCard}>
+                      <Text style={[styles.horizontalCardAmount, { color: item.color }]}>{item.amount}</Text>
+                      <Text style={styles.horizontalCardLabel}>{item.label}</Text>
+                    </View>
+                  ))}
 
-              {/* This Week Card */}
-              <View style={styles.summaryCardLight}>
-                <Text style={styles.cardAmountLight}>₹1,50,230</Text>
-                <Text style={styles.cardLabelLight}>{getCurrentMonth()} Electricity Collection</Text>
-              </View>
+                  {selectedSummaryTab === 'dues' && [
+                    { amount: '₹52,365', label: 'This Month Dues', color: '#EF4444' },
+                    { amount: '₹6,99,670', label: 'Previous Month Dues', color: '#EF4444' },
+                    { amount: '₹6,99,670', label: 'Total Dues', color: '#EF4444' }
+                  ].map((item, index) => (
+                    <View key={index} style={styles.horizontalCard}>
+                      <Text style={[styles.horizontalCardAmount, { color: item.color }]}>{item.amount}</Text>
+                      <Text style={styles.horizontalCardLabel}>{item.label}</Text>
+                    </View>
+                  ))}
 
-              {/* Yesterday Card */}
-              <View style={styles.summaryCardLight}>
-                <Text style={styles.cardAmountLight}>₹45,670</Text>
-                <Text style={styles.cardLabelLight}>{getCurrentMonth()} Rent Collection</Text>
-              </View>
+                  {selectedSummaryTab === 'expenses' && [
+                    { amount: '₹6,99,670', label: 'Today Expenses', color: '#F59E0B' },
+                    { amount: '₹6,99,670', label: 'This Month Expenses', color: '#F59E0B' },
+                    { amount: '₹6,99,670', label: 'Previous Month Expenses', color: '#F59E0B' }
+                  ].map((item, index) => (
+                    <View key={index} style={styles.horizontalCard}>
+                      <Text style={[styles.horizontalCardAmount, { color: item.color }]}>{item.amount}</Text>
+                      <Text style={styles.horizontalCardLabel}>{item.label}</Text>
+                    </View>
+                  ))}
+                </ScrollView>
 
-              {/* Last Month Card */}
-              <View style={styles.summaryCardLight}>
-                <Text style={styles.cardAmountLight}>₹3,20,450</Text>
-                <Text style={styles.cardLabelLight}>{getCurrentMonth()} Deposit Collection</Text>
+                <TouchableOpacity 
+                  style={styles.collapseButton}
+                  onPress={() => setSummaryExpanded(false)}
+                >
+                  <View style={styles.collapseIconCircle}>
+                    <Image 
+                      source={require('../assets/dropdown-arrow.png')} 
+                      style={styles.collapseArrow}
+                      resizeMode="contain"
+                    />
+                  </View>
+                </TouchableOpacity>
               </View>
-
-              {/* Advance Paid Card */}
-              <View style={styles.summaryCardLight}>
-                <Text style={styles.cardAmountLight}>₹89,320</Text>
-                <Text style={styles.cardLabelLight}>{getCurrentMonth()} Last Fine Collection</Text>
-              </View>
-
-              {/* Due Amount Card */}
-              <View style={styles.summaryCardLight}>
-                <Text style={styles.cardAmountLight}>₹67,890</Text>
-                <Text style={styles.cardLabelLight}>{getCurrentMonth()} Advance Collection</Text>
-              </View>
-            </ScrollView>
+            )}
           </View>
 
           {/* Quick Actions Section */}
@@ -594,62 +620,37 @@ export default function DashboardScreen({
             </View>
           </View>
 
-          {/* Rental News Slider Section */}
-          <View style={styles.rentalNewsSection}>
-            <View style={styles.rentalNewsHeader}>
-              <Text style={styles.rentalNewsTitle}>Rental News</Text>
-              <TouchableOpacity onPress={handleSlidePress} >
-            <Image
-              source={require('../assets/right-arrow.png')}
-              style={styles.rightArrowIcon}
-              resizeMode="contain"
-            />
-          </TouchableOpacity>
-            </View>
+          {/* Complaints Section */}
+          <View style={styles.complaintsSection}>
+            <View style={styles.complaintsCard}>
+              <Text style={styles.rentDetailsTitle}>Complaints</Text>
 
-            <View style={styles.sliderContainer}>
-              <ScrollView
-                horizontal
-                pagingEnabled
-                showsHorizontalScrollIndicator={false}
-                style={styles.slider}
-                contentOffset={{ x: currentSlideIndex * screenWidth*0.93, y: 0 }}
-                onMomentumScrollEnd={(event) => {
-                  const slideIndex = Math.round(event.nativeEvent.contentOffset.x / screenWidth*0.93);
-                  setCurrentSlideIndex(slideIndex);
-                }}
-              >
-                {newsSlides.map((slide, index) => (
-                  <View key={slide.id} style={styles.slideItem}>
-                    <Image
-                      source={slide.image}
-                      style={styles.slideImage}
-                      resizeMode="cover"
-                    />
-                    <View style={styles.slideOverlay}>
-                      <View style={styles.slideContent}>
-                        <Text style={styles.slideTitle}>{slide.title}</Text>
-                        <Text style={styles.slideSubtitle}>{slide.subtitle}</Text>
-                        <View style={styles.slideTag}>
-                          <Text style={styles.slideTagText}>{slide.tag}</Text>
-                        </View>
-                      </View>
+              <View style={styles.complaintsInnerContainer}>
+                <View style={styles.complaintsContainer}>
+                  {/* Today Section */}
+                  <View style={styles.complaintColumn}>
+                    <Text style={styles.complaintTopLabel}>Today</Text>
+                    <View style={styles.complaintNumberContainer}>
+                      <Text style={styles.complaintNumberRed}>12</Text>
                     </View>
+                    <Text style={styles.complaintLabel}>Complaints</Text>
+                    <TouchableOpacity style={styles.complaintViewButton}>
+                      <Text style={styles.complaintViewButtonText}>VIEW</Text>
+                    </TouchableOpacity>
                   </View>
-                ))}
-              </ScrollView>
 
-              {/* Slide Indicators */}
-              <View style={styles.slideIndicators}>
-                {newsSlides.map((_, index) => (
-                  <View
-                    key={index}
-                    style={[
-                      styles.indicator,
-                      index === currentSlideIndex && styles.activeIndicator
-                    ]}
-                  />
-                ))}
+                  {/* Total Pending Section */}
+                  <View style={styles.complaintColumn}>
+                    <Text style={styles.complaintTopLabelRed}>Total Pending</Text>
+                    <View style={styles.complaintNumberContainer}>
+                      <Text style={styles.complaintNumberRed}>45</Text>
+                    </View>
+                    <Text style={styles.complaintLabel}>Complaints</Text>
+                    <TouchableOpacity style={styles.complaintViewButton}>
+                      <Text style={styles.complaintViewButtonText}>VIEW</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
               </View>
             </View>
           </View>
@@ -711,155 +712,6 @@ const styles = StyleSheet.create({
     paddingTop: screenHeight*0.0125,
     paddingBottom:screenHeight*0.0813
   },
-  
-  summarySection: {
-    marginBottom: screenHeight*0.03,
-  },
-  summaryHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: screenHeight*0.02,
-    paddingHorizontal: 0,
-  },
-  summaryTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#000000',
-    fontFamily: 'Montserrat-Bold',
-    lineHeight: screenHeight*0.0263,
-    letterSpacing:0
-  },
-  allPropertyButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  allPropertyText: {
-    fontSize: 13,
-    fontWeight: '300',
-    color: '#666666',
-    fontFamily: 'Montserrat',
-    lineHeight: screenHeight*0.019,
-    marginRight: screenWidth*0.0139,
-  },
-  summaryDropdown: {
-    width: screenWidth*0.033,
-    height: screenHeight*0.016,
-    borderRadius: 1,
-  },
-  summaryScrollView: {
-    marginHorizontal: -(screenWidth*0.055),
-  },
-  summaryCardsContainer: {
-    paddingHorizontal: screenWidth*0.055,
-    paddingRight: screenWidth*0.033,
-  },
-  summaryCardDark: {
-    width: screenWidth*0.43,
-    height: screenHeight*0.115,
-    backgroundColor: '#242424',
-    borderRadius: 8,
-    borderWidth: 1.1,
-    borderColor: '#EAE7E7',
-    padding: screenWidth*0.044,
-    marginRight: screenWidth*0.033,
-    shadowColor: '#171A1F',
-    shadowOffset: {
-      width: 0,
-      height: 0,
-    },
-    shadowOpacity: 0.07,
-    shadowRadius: 1,
-    elevation: 2,
-    position: 'relative',
-  },
-  summaryCardLight: {
-    width: screenWidth*0.43,
-    height: screenHeight*0.115,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    borderWidth: 1.1,
-    borderColor: '#EAE7E7',
-    padding: screenWidth*0.044,
-    marginRight: screenWidth*0.033,
-    shadowColor: '#171A1F',
-    shadowOffset: {
-      width: 0,
-      height: 0,
-    },
-    shadowOpacity: 0.07,
-    shadowRadius: 1,
-    elevation: 2,
-    position: 'relative',
-  },
-  cardAmountDark: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#FFD600',
-    fontFamily: 'Inter-Bold',
-    lineHeight: screenHeight*0.04,
-    marginBottom: screenHeight*0.005,
-    width:screenWidth*0.255,
-    height:screenHeight*0.04,
-    top:-(screenHeight*0.0063)
-  },
-  cardAmountLight: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#33B94D',
-    fontFamily: 'Inter-Bold',
-    lineHeight: screenHeight*0.04,
-    marginBottom: screenHeight*0.005,
-    width:screenWidth*0.255,
-    height:screenHeight*0.04,
-    top:-(screenHeight*0.0063)
-  },
-  cardLabelDark: {
-    fontSize: 13,
-    fontWeight: '400',
-    color: '#FFF',
-    fontFamily: 'Montserrat-Regular',
-    lineHeight: screenHeight*0.02,
-    position: 'absolute',
-    bottom: screenHeight*0.02,
-    left: screenWidth*0.044,
-    width: screenWidth*0.183,
-  },
-  cardLabelLight: {
-    fontSize: 13,
-    fontWeight: '400',
-    color: '#000',
-    fontFamily: 'Montserrat-Regular',
-    lineHeight: screenHeight*0.02,
-    position: 'absolute',
-    bottom: screenHeight*0.02,
-    left: screenWidth*0.044,
-    width: screenWidth*0.361,
-  },
-  cardAmountLighta: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#EF1D1D',
-    fontFamily: 'Inter-Bold',
-    lineHeight: screenHeight*0.04,
-    marginBottom: screenHeight*0.005,
-    width:screenWidth*0.255,
-    height:screenHeight*0.04,
-    top:-(screenHeight*0.0063)
-  },
-  rupeeIconContainer: {
-    position: 'absolute',
-    top: screenHeight*0.055,
-    right: screenWidth*0.055,
-    transform: [{ rotate: '-0.03deg' }],
-  },
-  rupeeIcon: {
-    fontSize: 32,
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    opacity: 0.2,
-  },
-
   quickActionsSection: {
     marginBottom: screenHeight*0.03,
   },
@@ -898,7 +750,7 @@ const styles = StyleSheet.create({
   actionIconImage: {
     width: screenWidth*0.067,
     height: screenHeight*0.03,
-    tintColor: '#666666',
+    tintColor: '#000000',
   },
   FrameIconImage: {
     width: screenWidth*0.117,
@@ -1265,116 +1117,414 @@ otherViewButtonText: {
   lineHeight: screenHeight*0.0325,
   textAlign: 'center',
 },
-rentalNewsSection: {
-  left:-(screenWidth*0.0472),
-  marginBottom: screenHeight*0.03,
-  marginHorizontal: screenWidth*0.0472,
+allPropertySection: {
+  marginBottom: screenHeight * 0.015,
+  alignItems: 'flex-end',
+  position: 'relative',
+  zIndex: 2,
 },
-rentalNewsHeader: {
+allPropertyDropdown: {
+  backgroundColor: '#FFD700',
+  borderRadius: 20,
+  marginBottom: -(screenHeight * 0.045),
+  paddingVertical: screenHeight * 0.01,
+  paddingHorizontal: screenWidth * 0.045,
   flexDirection: 'row',
-  justifyContent: 'space-between',
   alignItems: 'center',
-  marginBottom: screenHeight*0.015,
-  paddingHorizontal: 2,
+  justifyContent: 'space-between',
+  minWidth: screenWidth * 0.32,
+  shadowColor: '#000000',
+  shadowOffset: {
+    width: 0,
+    height: 2,
+  },
+  shadowOpacity: 0.15,
+  shadowRadius: 4,
+  elevation: 4,
 },
-rentalNewsTitle: {
-  fontSize: 18,
-  fontWeight: '700',
+allPropertyDropdownText: {
+  fontSize: 14,
+  fontWeight: '600',
   color: '#000000',
-  fontFamily: 'Montserrat-Bold',
-  lineHeight: screenHeight*0.026,
-  letterSpacing:0,
+  fontFamily: 'Inter-SemiBold',
+  marginRight: screenWidth * 0.015,
 },
-rightArrowIcon: {
-  width: screenWidth*0.0639,
-  height: screenHeight*0.029,
-  left:screenWidth*0.0695,
+allPropertyDropdownIcon: {
+  width: screenWidth * 0.038,
+  height: screenWidth * 0.038,
   tintColor: '#000000',
 },
-sliderContainer: {
-  width: screenWidth*0.93,
-  height: screenHeight*0.25,
+summarySection: {
+  marginBottom: screenHeight * 0.02,
   position: 'relative',
-  right:screenWidth*0.015
+  zIndex: 1,
 },
-slider: {
-  width: '100%',
-  height: '100%',
-},
-slideItem: {
-  width: screenWidth*0.93,
-  height: screenHeight*0.25,
-  borderRadius: 12,
-  overflow: 'hidden',
+collapsedSummaryContainer: {
+  backgroundColor: '#2B2B2B',
+  borderRadius: 16,
+  marginTop: -(screenHeight * 0.0125),
+  paddingTop: screenHeight * 0.022,
+  paddingBottom: screenHeight * 0.025,
+  paddingHorizontal: screenWidth * 0.045,
+  minHeight: screenHeight * 0.18,
   position: 'relative',
+  shadowColor: '#000000',
+  shadowOffset: {
+    width: 0,
+    height: 4,
+  },
+  shadowOpacity: 0.2,
+  shadowRadius: 8,
 },
-slideImage: {
-  width: '100%',
-  height: '100%',
-},
-slideOverlay: {
+collapsedNotch: {
   position: 'absolute',
   top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
-  backgroundColor: 'rgba(0, 0, 0, 0.3)',
-  justifyContent: 'flex-end',
-  padding: screenHeight*0.025,
+  left: screenWidth*0.565,
+  width: screenWidth * 0.4,
+  height: screenHeight * 0.043,
+  backgroundColor: '#FFFFFF',
+  borderBottomLeftRadius: 20,
 },
-slideContent: {
-  alignItems: 'flex-start',
-},
-slideTitle: {
-  fontSize: 20,
-  fontWeight: '700',
-  color: '#FFFFFF',
-  fontFamily: 'Montserrat',
-  lineHeight: screenHeight*0.03,
-  marginBottom: screenHeight*0.005,
-},
-slideSubtitle: {
-  fontSize: 14,
+collapsedTitle: {
+  fontSize: 16,
   fontWeight: '400',
   color: '#FFFFFF',
-  fontFamily: 'Inter',
-  lineHeight: screenHeight*0.0225,
-  marginBottom: screenHeight*0.0225,
+  fontFamily: 'Inter-Regular',
+  marginBottom: screenHeight * 0.008,
+  textAlign: 'left',
 },
-slideTag: {
-  backgroundColor: '#4CAF50',
-  paddingHorizontal: screenWidth*0.033,
-  paddingVertical: screenHeight*0.0075,
-  borderRadius: 16,
-  alignSelf: 'flex-start',
-},
-slideTagText: {
-  fontSize: 12,
-  fontWeight: '500',
+collapsedAmount: {
+  fontSize: 36,
+  fontWeight: '700',
   color: '#FFFFFF',
-  fontFamily: 'Inter',
-  lineHeight: screenHeight*0.0175,
+  fontFamily: 'Montserrat-Bold',
+  lineHeight: screenHeight * 0.048,
+  marginBottom: screenHeight * 0.008,
+  letterSpacing: 0.5,
 },
-slideIndicators: {
+collapsedPercentage: {
+  fontSize: 14,
+  fontWeight: '600',
+  color: '#4CAF50',
+  fontFamily: 'Inter-SemiBold',
+  lineHeight: screenHeight * 0.02,
+  marginBottom: screenHeight * 0.003,
+},
+collapsedSubtext: {
+  fontSize: 12,
+  fontWeight: '400',
+  color: '#9CA3AF',
+  fontFamily: 'Inter-Regular',
+  lineHeight: screenHeight * 0.018,
+},
+expandButton: {
   position: 'absolute',
-  bottom: screenHeight*0.0125,
-  left: 0,
-  right: 0,
-  flexDirection: 'row',
+  bottom: screenHeight * 0.018,
+  right: screenWidth * 0.045,
+  width: screenWidth * 0.072,
+  height: screenWidth * 0.072,
   justifyContent: 'center',
   alignItems: 'center',
+  marginBottom: -(screenHeight * 0.005),
 },
-indicator: {
-  width: screenWidth*0.022,
-  height: screenHeight*0.01,
-  borderRadius: 4,
-  backgroundColor: 'rgba(255, 255, 255, 0.5)',
-  marginHorizontal: 3,
+expandIconCircle: {
+  width: screenWidth * 0.072,
+  height: screenWidth * 0.072,
+  borderRadius: (screenWidth * 0.072) / 2,
+  backgroundColor: '#FFD700',
+  justifyContent: 'center',
+  alignItems: 'center',
+  shadowColor: '#000000',
+  shadowOffset: {
+    width: 0,
+    height: 2,
+  },
+  shadowOpacity: 0.15,
+  shadowRadius: 3,
+  elevation: 3,
 },
-activeIndicator: {
+expandArrow: {
+  width: screenWidth * 0.04,
+  height: screenWidth * 0.04,
+  tintColor: '#000000',
+},
+expandedSummaryContainer: {
+  backgroundColor: '#2B2B2B',
+  borderRadius: 16,
+  marginTop: -(screenHeight * 0.0125),
+  paddingTop: screenHeight * 0.022,
+  paddingHorizontal: screenWidth * 0.045,
+  minHeight: screenHeight * 0.37,
+  position: 'relative',
+  shadowColor: '#000000',
+  shadowOffset: {
+    width: 0,
+    height: 4,
+  },
+  shadowOpacity: 0.15,
+  shadowRadius: 6,
+  elevation: 5,
+},
+expandedNotch: {
+  position: 'absolute',
+  top: 0,
+  left: screenWidth*0.565,
+  width: screenWidth * 0.4,
+  height: screenHeight * 0.043,
   backgroundColor: '#FFFFFF',
-  width: screenWidth*0.033,
-  height: screenHeight*0.01,
-  borderRadius: 4,
+  borderBottomLeftRadius: 20,
+},
+expandedTitle: {
+  fontSize: 16,
+  fontWeight: '400',
+  color: '#FFFFFF',
+  fontFamily: 'Inter-Regular',
+  marginBottom: screenHeight * 0.008,
+  textAlign: 'left',
+},
+expandedAmount: {
+  fontSize: 36,
+  fontWeight: '700',
+  color: '#FFFFFF',
+  fontFamily: 'Montserrat-Bold',
+  lineHeight: screenHeight * 0.048,
+  marginBottom: screenHeight * 0.008,
+  letterSpacing: 0.5,
+},
+expandedPercentage: {
+  fontSize: 14,
+  fontWeight: '600',
+  color: '#4CAF50',
+  fontFamily: 'Inter-SemiBold',
+  lineHeight: screenHeight * 0.02,
+  marginBottom: screenHeight * 0.003,
+},
+expandedSubtext: {
+  fontSize: 12,
+  fontWeight: '400',
+  color: '#9CA3AF',
+  fontFamily: 'Inter-Regular',
+  lineHeight: screenHeight * 0.018,
+  marginBottom: screenHeight * 0.02,
+},
+tabContainer: {
+  flexDirection: 'row',
+  backgroundColor: '#1A1A1A',
+  borderRadius: 8,
+  borderColor: '#FFFFFF',
+  borderWidth: 0.5,
+  padding: 1,
+  marginBottom: screenHeight * 0.015,
+  alignSelf: 'stretch',
+},
+tabButton: {
+  paddingVertical: screenHeight * 0.007,
+  paddingHorizontal: screenWidth * 0.018,
+  borderRadius: 6,
+  flex: 1,
+  alignItems: 'center',
+  justifyContent: 'center',
+  minHeight: screenHeight * 0.035,
+},
+activeTabButton: {
+  backgroundColor: '#FFFFFF',
+},
+tabText: {
+  fontSize: 13,
+  fontWeight: '500',
+  color: '#9CA3AF',
+  fontFamily: 'Inter-Medium',
+  textAlign: 'center',
+},
+activeTabText: {
+  color: '#000000',
+  fontWeight: '600',
+  fontFamily: 'Inter-SemiBold',
+},
+horizontalCardsScrollView: {
+  marginTop: 0,
+  flexGrow: 0,
+},
+horizontalCardsContainer: {
+},
+horizontalCard: {
+  backgroundColor: '#FFFFFF',
+  borderRadius: 12,
+  paddingVertical: screenHeight * 0.018,
+  paddingHorizontal: screenWidth * 0.038,
+  marginRight: screenWidth * 0.03,
+  width: screenWidth * 0.36,
+  minHeight: screenHeight * 0.105,
+  shadowColor: '#000000',
+  shadowOffset: {
+    width: 0,
+    height: 2,
+  },
+  shadowOpacity: 0.08,
+  shadowRadius: 4,
+  elevation: 2,
+  justifyContent: 'space-between',
+},
+horizontalCardAmount: {
+  fontSize: 20,
+  fontWeight: '700',
+  fontFamily: 'Montserrat-Bold',
+  lineHeight: screenHeight * 0.03,
+  marginBottom: screenHeight * 0.006,
+},
+horizontalCardLabel: {
+  fontSize: 12,
+  fontWeight: '400',
+  color: '#6B7280',
+  fontFamily: 'Inter-Regular',
+  lineHeight: screenHeight * 0.017,
+  flexWrap: 'wrap',
+},
+collapseButton: {
+  position: 'absolute',
+  bottom: screenHeight * 0.018,
+  right: screenWidth * 0.045,
+  width: screenWidth * 0.092,
+  height: screenWidth * 0.092,
+  justifyContent: 'center',
+  alignItems: 'center',
+  marginBottom: -(screenHeight * 0.0115),
+},
+collapseIconCircle: {
+  width: screenWidth * 0.072,
+  height: screenWidth * 0.072,
+  borderRadius: (screenWidth * 0.072) / 2,
+  backgroundColor: '#FFD700',
+  justifyContent: 'center',
+  alignItems: 'center',
+  shadowColor: '#000000',
+  shadowOffset: {
+    width: 0,
+    height: 2,
+  },
+  shadowOpacity: 0.15,
+  shadowRadius: 3,
+  elevation: 3,
+},
+collapseArrow: {
+  width: screenWidth * 0.04,
+  height: screenWidth * 0.04,
+  tintColor: '#000000',
+  transform: [{ rotate: '180deg' }],
+},
+complaintsSection: {
+  marginBottom: screenHeight*0.03,
+},
+complaintsCard: {
+  width: screenWidth*0.93,
+  height: screenHeight*0.27,
+  right: screenWidth*0.02,
+  backgroundColor: '#FFF4B8',
+  borderRadius: 10,
+  borderWidth: 1,
+  borderColor: '#606161',
+  position: 'relative',
+  shadowColor: '#171A1F',
+  shadowOffset: {
+    width: 0,
+    height: 0,
+  },
+  shadowOpacity: 0.05,
+  shadowRadius: 1,
+  elevation: 3,
+},
+complaintsInnerContainer: {
+  position: 'absolute',
+  top: screenHeight*0.049,
+  left: screenWidth*0.048,
+  width: screenWidth*0.839,
+  height: screenHeight*0.19,
+  backgroundColor: '#FFFFFF',
+  borderRadius: 10,
+  borderWidth: 1,
+  borderColor: '#FFFFFF',
+  shadowColor: '#171A1F',
+  shadowOffset: {
+    width: 4,
+    height: 3,
+  },
+  shadowOpacity: 0.05,
+  shadowRadius: 2.5,
+  elevation: 4,
+},
+complaintsContainer: {
+  flexDirection: 'row',
+  justifyContent: 'space-around',
+  alignItems: 'flex-start',
+  paddingTop: screenHeight*0.025,
+  paddingHorizontal: screenWidth*0.055,
+},
+complaintColumn: {
+  alignItems: 'center',
+  flex: 1,
+},
+complaintTopLabel: {
+  fontSize: 14,
+  fontWeight: '600',
+  color: '#000000',
+  fontFamily: 'Inter',
+  lineHeight: screenHeight*0.025,
+  marginBottom: screenHeight*0.015,
+  textAlign: 'center',
+  bottom:screenHeight*0.005
+},
+complaintTopLabelRed: {
+  fontSize: 14,
+  fontWeight: '600',
+  color: '#000000',
+  fontFamily: 'Inter',
+  lineHeight: screenHeight*0.025,
+  marginBottom: screenHeight*0.015,
+  textAlign: 'center',
+  bottom: screenHeight*0.005
+},
+complaintNumberContainer: {
+  flexDirection: 'row',
+  alignItems: 'baseline',
+  justifyContent: 'center',
+  marginBottom: screenHeight*0.01,
+  bottom:screenHeight*0.0125
+},
+complaintNumberRed: {
+  fontSize: 25,
+  fontWeight: '700',
+  color: '#E74C3C',
+  fontFamily: 'Montserrat',
+  lineHeight: screenHeight*0.045,
+},
+complaintLabel: {
+  fontSize: 14,
+  fontWeight: '400',
+  color: '#000000',
+  fontFamily: 'Inter',
+  lineHeight: screenHeight*0.025,
+  marginBottom: screenHeight*0.015,
+  bottom:screenHeight*0.02,
+  textAlign: 'center',
+},
+complaintViewButton: {
+  width: screenWidth*0.2639,
+  height: screenHeight*0.0413,
+  bottom:screenHeight*0.025,
+  backgroundColor: '#FEFEFE',
+  borderRadius: 5,
+  borderWidth: 1,
+  borderColor: '#4F4F4F',
+  alignItems: 'center',
+  justifyContent: 'center',
+},
+complaintViewButtonText: {
+  fontSize: 14,
+  width:screenWidth*0.1028,
+  fontWeight: '600',
+  color: '#000000',
+  fontFamily: 'Montserrat-SemiBold',
+  lineHeight: screenHeight*0.0325,
+  textAlign: 'center',
 },
 });

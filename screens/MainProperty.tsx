@@ -34,18 +34,10 @@ export default function MainPropertyScreen({
   activeTab = 'property',
   onAddTenantPress
 }: MainPropertyScreenProps) {
+  const [selectedFilter, setSelectedFilter] = useState('All Rooms');
   const [searchText, setSearchText] = useState('');
-  const [selectedFloor, setSelectedFloor] = useState('Ground Floor');
 
-  const floorsData = [
-    'Ground Floor',
-    '1st Floor', 
-    '2nd Floor',
-    '3rd Floor',
-    '4th Floor'
-  ];
-
-  // Room data structure
+  // Room data structure - moved to top to avoid undefined error
   const roomsData = {
     'Ground Floor': [
       {
@@ -185,31 +177,63 @@ export default function MainPropertyScreen({
     ]
   };
 
-  const handleFloorSelect = (floor: string) => {
-    setSelectedFloor(floor);
-    console.log('Selected floor:', floor);
+  // Calculate statistics from all rooms
+  const getAllRooms = () => {
+    const allRooms: any[] = [];
+    Object.values(roomsData).forEach(floorRooms => {
+      allRooms.push(...floorRooms);
+    });
+    return allRooms;
   };
 
-  const handleAddPress = () => {
-    console.log('Add button pressed');
+  const calculateStats = () => {
+    const allRooms = getAllRooms();
+    const totalRooms = allRooms.length;
+    const roomFull = allRooms.filter(room => room.status === 'Full').length;
+    const vacantRoom = totalRooms - roomFull;
+    
+    let totalBeds = 0;
+    let occupiedBeds = 0;
+    
+    allRooms.forEach(room => {
+      totalBeds += room.bedCount;
+      occupiedBeds += room.beds.filter((bed: any) => !bed.available).length;
+    });
+    
+    const bedsVacant = totalBeds - occupiedBeds;
+    const occupancy = totalBeds > 0 ? ((occupiedBeds / totalBeds) * 100) : 0;
+    
+    return {
+      vacantRoom,
+      bedsVacant,
+      roomFull,
+      occupancy: occupancy.toFixed(1)
+    };
+  };
+
+  const getFilteredRooms = () => {
+    const allRooms = getAllRooms();
+    
+    switch (selectedFilter) {
+      case 'Available':
+        return allRooms.filter(room => room.status === 'Available');
+      case 'Occupied':
+        return allRooms.filter(room => room.status === 'Full');
+      default:
+        return allRooms;
+    }
+  };
+
+  const stats = calculateStats();
+
+  const handleFilterSelect = (filter: string) => {
+    setSelectedFilter(filter);
   };
 
   const handleTabPress = (tabId: string) => {
     if (onTabPress) {
       onTabPress(tabId);
     }
-  };
-
-  const handleProfilePress = () => {
-    console.log('Profile pressed');
-  };
-
-  const handleSupportPress = () => {
-    console.log('Support pressed');
-  };
-
-  const handleFilterPress = () => {
-    console.log('Filter pressed');
   };
 
   const handleHomePress = () => {
@@ -219,15 +243,30 @@ export default function MainPropertyScreen({
   };
 
   const handleAddTenant = (roomId: string) => {
-    console.log('Add tenant for room:', roomId);
-    // Navigate to AddTenantScreen
     if (onAddTenantPress) {
       onAddTenantPress();
     }
   };
 
+  // Simple handlers for UI interactions
+  const handleAddPress = () => {
+    // Add button functionality can be implemented later
+  };
+
+  const handleProfilePress = () => {
+    // Profile press functionality can be implemented later
+  };
+
+  const handleSupportPress = () => {
+    // Support press functionality can be implemented later
+  };
+
+  const handleFilterPress = () => {
+    // Filter press functionality can be implemented later
+  };
+
   const handleSharePress = (roomId: string) => {
-    console.log('Share room:', roomId);
+    // Share functionality can be implemented later
   };
 
   const renderRoomCard = (room: any) => {
@@ -248,16 +287,12 @@ export default function MainPropertyScreen({
     const occupiedCount = occupiedBeds.length;
     
     if (totalBeds <= maxDisplayBeds) {
-      // Show all beds if total is 4 or less
       bedsToShow = [...availableBeds, ...occupiedBeds];
     } else {
-      // Show up to 4 beds with priority to available beds
       if (availableCount >= maxDisplayBeds) {
-        // If we have 4 or more available beds, show 4 available
         bedsToShow = availableBeds.slice(0, maxDisplayBeds);
         remainingCount = totalBeds - maxDisplayBeds;
       } else {
-        // Show all available beds first, then fill with occupied beds
         bedsToShow = [...availableBeds];
         const remainingSlots = maxDisplayBeds - availableCount;
         const occupiedToShow = Math.min(remainingSlots, occupiedCount);
@@ -279,7 +314,6 @@ export default function MainPropertyScreen({
             />
           </View>
           
-          {/* Room Number */}
           <Text style={roomCardStyles.roomNumber}>{room.roomNumber}</Text>
           
           {/* Status Badge */}
@@ -394,36 +428,6 @@ export default function MainPropertyScreen({
       );
     }
 
-  const statsData = [
-    { id: 'all', title: 'All', value: '30', isDark: true },
-    { id: 'vacant', title: 'Vacant Bed', value: '30', color: '#EF5350' },
-    { id: 'nodues', title: 'No Dues', value: '30', color: '#66BB6A' },
-    { id: 'notice', title: 'Notice', value: '30', color: '#FFD600' },
-    { id: 'floors1', title: 'Floor View', value: '15', color: '#33B94D' },
-    { id: 'floors2', title: 'Ground Floor', value: '8', color: '#3574FD' },
-    { id: 'floors3', title: '1st Floor', value: '12', color: '#EF5350' }
-  ];
-
-  const renderStatsCard = (item: any, index: number) => {
-    if (item.isDark) {
-      return (
-        <View key={item.id} style={styles.statsCardDark}>
-          <Text style={styles.statsTextDark}>All</Text>
-          <Text style={styles.statsNumberDark}>{item.value}</Text>
-        </View>
-      );
-    }
-
-    return (
-      <View key={item.id} style={styles.statsCardLight}>
-        <Text style={styles.statsTextLight}>{item.title}</Text>
-        <Text style={[styles.statsNumberLight, { color: item.color }]}>
-          {item.value}
-        </Text>
-      </View>
-    );
-  };
-
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
@@ -472,53 +476,75 @@ export default function MainPropertyScreen({
           </TouchableOpacity>
         </View>
 
-        {/* Stats Section */}
-        <View style={styles.statsSection}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.statsScrollView}
-            contentContainerStyle={styles.statsScrollContainer}
-          >
-            {statsData.map((item, index) => renderStatsCard(item, index))}
-          </ScrollView>
+        {/* Stats Section - 2 Column Layout */}
+        <View style={styles.statsContainer}>
+          <View style={styles.statsRow}>
+            {/* Left Card */}
+            <View style={styles.statCard}>
+              <View style={styles.statRow}>
+                <View style={styles.statItemLeft}>
+                  <Text style={styles.statLabel}>Vacant Room</Text>
+                  <View style={styles.statValueContainer}>
+                    <Text style={[styles.statValue, { color: '#EF5350' }]}>{stats.vacantRoom}</Text>
+                  </View>
+                </View>
+              </View>
+              <View style={styles.statRow}>
+                <View style={styles.statItemLeft}>
+                  <Text style={styles.statLabel}>Room Full</Text>
+                  <View style={styles.statValueContainer}>
+                    <Text style={[styles.statValue, { color: '#66BB6A' }]}>{stats.roomFull}</Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+            
+            {/* Right Card */}
+            <View style={styles.statCard}>
+              <View style={styles.statRow}>
+                <View style={styles.statItemRight}>
+                  <Text style={styles.statLabel}>Beds Vacant</Text>
+                  <View style={styles.statValueContainer}>
+                    <Text style={[styles.statValue, { color: '#EF5350' }]}>{stats.bedsVacant}</Text>
+                  </View>
+                </View>
+              </View>
+              <View style={styles.statRow}>
+                <View style={styles.statItemRight}>
+                  <Text style={styles.statLabel}>Occupancy</Text>
+                  <View style={styles.statValueContainera}>
+                    <Text style={[styles.statValue, { color: '#66BB6A' }]}>{stats.occupancy}%</Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </View>
         </View>
 
-        <View style={styles.floorNavigationSection}>
-          <View style={styles.fixedFloorButton}>
-            <Text style={styles.fixedFloorButtonText}>Floor View</Text>
-          </View>
-          <View style={styles.verticalDivider} />
-
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.floorScrollContainer}
-            contentContainerStyle={styles.floorScrollContent}
-          >
-            {floorsData.map((floor, index) => (
-              <TouchableOpacity
-                key={index}
-                style={[
-                  styles.floorScrollButton,
-                  selectedFloor === floor && styles.selectedFloorButton
-                ]}
-                onPress={() => handleFloorSelect(floor)}
-              >
-                <Text style={[
-                  styles.floorScrollButtonText,
-                  selectedFloor === floor && styles.selectedFloorButtonText
-                ]}>
-                  {floor}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+        {/* Filter Buttons */}
+        <View style={styles.filterButtonsContainer}>
+          {['All Rooms', 'Available', 'Occupied'].map((filter) => (
+            <TouchableOpacity
+              key={filter}
+              style={[
+                styles.filterButton,
+                selectedFilter === filter && styles.selectedFilterButton
+              ]}
+              onPress={() => handleFilterSelect(filter)}
+            >
+              <Text style={[
+                styles.filterButtonText,
+                selectedFilter === filter && styles.selectedFilterButtonText
+              ]}>
+                {filter}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </View>
 
         {/* Rooms Section */}
         <View style={roomCardStyles.roomsSection}>
-        {roomsData[selectedFloor as keyof typeof roomsData]?.map((room: any) => renderRoomCard(room))}
+          {getFilteredRooms().map((room: any) => renderRoomCard(room))}
         </View>
 
         {/* Spacer for content */}
@@ -608,177 +634,117 @@ const styles = StyleSheet.create({
     height: screenHeight*0.025,
     tintColor: '#000',
   },
-  statsSection: {
-    width: screenWidth*0.916,
-    height: screenHeight*0.11875,
-    top: screenHeight*0.015,
-    left: screenWidth*0.05,
-    marginBottom: screenHeight*0.00725,
+  statsContainer: {
+    paddingHorizontal: screenWidth * 0.05,
+    marginTop: screenHeight * 0.0075,
+    marginBottom: screenHeight * 0.02,
   },
-  statsScrollView: {
-    marginHorizontal: -(screenWidth*0.055),
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
-  statsScrollContainer: {
-    paddingHorizontal: screenWidth*0.055,
-  },
-  statsCardDark: {
-    width: screenWidth*0.233,
-    height: screenHeight*0.0975,
-    backgroundColor: '#242424',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#FFF',
-    padding: screenHeight*0.02,
-    marginRight: screenWidth*0.033,
-    shadowColor: '#171A1F',
-    shadowOffset: {
-      width: 0,
-      height: 0,
-    },
-    shadowOpacity: 0.07,
-    shadowRadius: 1,
-    elevation: 2,
-    position: 'relative',
-  },
-  statsCardLight: {
-    width: screenWidth*0.233,
-    height: screenHeight*0.0975,
+  statCard: {
+    width: screenWidth * 0.43,
+    height: screenHeight * 0.125,
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#EAE7E7',
-    padding: screenHeight*0.02,
-    marginRight: screenWidth*0.033,
-    shadowColor: '#171A1F',
+    borderColor: '#E5E5E5',
+    paddingVertical: screenHeight * 0.015,
+    paddingHorizontal: screenWidth * 0.04,
+    justifyContent: 'space-between',
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 0,
+      height: 2,
     },
-    shadowOpacity: 0.07,
-    shadowRadius: 1,
-    elevation: 2,
-    position: 'relative',
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 0.5,
   },
-  statsTextDark: {
-    fontFamily: 'Roboto-Medium',
-    fontWeight: '500',
-    fontSize: 14,
-    lineHeight: screenHeight*0.025,
-    letterSpacing: 0,
-    textAlign: 'center',
-    color: '#FFFFFF',
-    width: screenWidth*0.0472,
-    height: screenHeight*0.025,
-    top: screenHeight*0.02125,
-    left: screenWidth*0.0916,
-    position: 'absolute',
-  },
-  statsNumberDark: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#FFD600',
-    fontFamily: 'Inter-Bold',
-    lineHeight: screenHeight*0.04,
-    width:'100%',
-    height: screenHeight*0.035,
-    top: screenHeight*0.025,
-    textAlign: 'center',
-  },
-  statsTextLight: {
-    fontFamily: 'Roboto-Medium',
-    fontWeight: '500',
-    fontSize: 14,
-    lineHeight: screenHeight*0.025,
-    letterSpacing: 0,
-    textAlign: 'center',
-    color: '#000000',
-    width: screenWidth*0.2,
-    height: screenHeight*0.025,
-    top: screenHeight*0.02125,
-    left:screenWidth*0.0139,
-    position: 'absolute',
-  },
-  statsNumberLight: {
-    fontSize: 22,
-    fontWeight: '700',
-    fontFamily: 'Inter-Bold',
-    lineHeight: screenHeight*0.04,
-    width:'100%',
-    height:screenHeight*0.035,
-    top:screenHeight*0.025,
-    textAlign: 'center',
-  },
-  contentSpacer: {
-    height: screenHeight*0.2,
-  },
-  floorNavigationSection: {
+  statRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: screenHeight * 0.005,
-    marginBottom: screenHeight * 0.0225,
-    height: screenHeight * 0.045,
-    backgroundColor: '#FFFFFF',
-    paddingLeft: screenWidth * 0.05,
-    
+    justifyContent: 'space-between',
   },
-  fixedFloorButton: {
-    paddingHorizontal: screenWidth * 0.04,
-    paddingVertical: screenHeight * 0.008,
-    backgroundColor: '#FED232',
-    borderRadius: 6,
+  statItemLeft: {
+    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    width: screenWidth * 0.239,
-    height: screenHeight * 0.035,
-    minWidth: screenWidth * 0.2,
+    justifyContent: 'space-between',
   },
-  fixedFloorButtonText: {
-    fontFamily: 'Roboto-Medium',
+  statItemRight: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  statLabel: {
+    fontSize: 16,
     fontWeight: '600',
-    fontSize: screenWidth * 0.028,
     color: '#000000',
-    textAlign: 'center',
-  },
-  verticalDivider: {
-    width: 1,
-    height: screenHeight * 0.025,
-    backgroundColor: '#E0E0E0',
-    marginHorizontal: screenWidth * 0.03,
-  },
-  floorScrollContainer: {
+    fontFamily: 'Roboto-Medium',
     flex: 1,
   },
-  floorScrollContent: {
-    alignItems: 'center',
-  },
-  floorScrollButton: {
-    paddingHorizontal: screenWidth * 0.035,
-    paddingVertical: screenHeight * 0.008,
-    backgroundColor: '#FFF4B8',
+  statValueContainer: {
+    minWidth: screenWidth * 0.08,
+    height: screenWidth * 0.08,
+    backgroundColor: '#F5F5F5',
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: screenWidth * 0.025,
-    borderWidth: 1,
-    borderColor: '#FFFFFF',
-    width: screenWidth * 0.239,
-    height: screenHeight * 0.035,
-    minWidth: screenWidth * 0.18,
   },
-  selectedFloorButton: {
-    backgroundColor: '#FED232',
-    borderColor: '#FFC107',
+  statValueContainera: {
+    minWidth: screenWidth * 0.13,
+    height: screenWidth * 0.08,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  floorScrollButtonText: {
+  statValue: {
+    fontSize: 18,
+    fontWeight: '700',
     fontFamily: 'Roboto-Medium',
-    fontWeight: '500',
-    fontSize: screenWidth * 0.026,
-    color: '#666666',
-    textAlign: 'center',
+    lineHeight: 20,
   },
-  selectedFloorButtonText: {
+  filterButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    backgroundColor: '#000000',
+    borderRadius: 8,
+    marginBottom: screenHeight * 0.02,
+    marginHorizontal: screenWidth * 0.05,
+    gap: 8,
+  },
+  filterButton: {
+    paddingVertical: screenHeight * 0.005,
+    paddingHorizontal: screenWidth * 0.06,
+    marginVertical: screenHeight * 0.0075,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  selectedFilterButton: {
+    backgroundColor: '#FFECA7',
+    borderColor: '#7A7E7E',
+  },
+  filterButtonText: {
+    fontSize: 13,
     fontWeight: '600',
     color: '#000000',
+    fontFamily: 'Montserrat-SemiBold',
+  },
+  selectedFilterButtonText: {
+    color: '#000000',
+    fontWeight: '700',
+  },
+
+  contentSpacer: {
+    height: screenHeight*0.2,
   },
 });
 const roomCardStyles = StyleSheet.create({

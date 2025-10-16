@@ -50,7 +50,6 @@ export default function TenantsScreen({
   onTenantProfilePress
 }: TenantsScreenProps) {
   const [searchText, setSearchText] = useState('');
-  const [selectedRoom, setSelectedRoom] = useState<string>('All Rooms');
   
   const animatedValues = useRef<{[key: string]: Animated.Value}>({});
   
@@ -112,14 +111,6 @@ export default function TenantsScreen({
     }
   ];
 
-  const roomsData = [
-    '101',
-    '102', 
-    '103',
-    '104',
-    '105'
-  ];
-
   const getAnimatedValue = (tenantId: string) => {
     if (!animatedValues.current[tenantId]) {
       animatedValues.current[tenantId] = new Animated.Value(0);
@@ -127,12 +118,22 @@ export default function TenantsScreen({
     return animatedValues.current[tenantId];
   };
 
-  const statsData = [
-    { id: 'all', title: 'All', value: '30', isDark: true },
-    { id: 'dues', title: 'Dues', value: '30', color: '#EF5350' },
-    { id: 'nodues', title: 'No Dues', value: '30', color: '#66BB6A' },
-    { id: 'notice', title: 'Notice', value: '30', color: '#FFD600' }
-  ];
+  // Calculate tenant statistics
+  const calculateTenantStats = () => {
+    const totalTenants = tenantsData.length;
+    const pendingDue = tenantsData.filter(tenant => tenant.rentDue).length;
+    const underNotice = tenantsData.filter(tenant => tenant.underNotice).length;
+    const booking = totalTenants;
+    
+    return {
+      totalTenants,
+      pendingDue,
+      underNotice,
+      booking
+    };
+  };
+
+  const tenantStats = calculateTenantStats();
 
   const handleProfilePress = () => {
     console.log('Profile pressed');
@@ -162,17 +163,12 @@ export default function TenantsScreen({
     }
   };
 
-  const handleRoomSelect = (room: string) => {
-    setSelectedRoom(room);
-    console.log('Selected room:', room);
-  };
+  
 
-  const filteredTenants = selectedRoom === 'All Rooms' 
-    ? tenantsData 
-    : tenantsData.filter(tenant => tenant.room === selectedRoom);
+  const filteredTenants = tenantsData;
 
   const handleAddTenant = () => {
-    console.log('Add tenant for room:', selectedRoom);
+    console.log('Add tenant');
     if (onAddTenantPress) {
       onAddTenantPress();
     }
@@ -321,26 +317,6 @@ export default function TenantsScreen({
     if (onAddTenantPress) {
       onAddTenantPress();
     }
-  };
-
-  const renderStatsCard = (item: any, index: number) => {
-    if (item.isDark) {
-      return (
-        <View key={item.id} style={styles.statsCardDark}>
-          <Text style={styles.statsTextDark}>All</Text>
-          <Text style={styles.statsNumberDark}>{item.value}</Text>
-        </View>
-      );
-    }
-
-    return (
-      <View key={item.id} style={styles.statsCardLight}>
-        <Text style={styles.statsTextLight}>{item.title}</Text>
-        <Text style={[styles.statsNumberLight, { color: item.color }]}>
-          {item.value}
-        </Text>
-      </View>
-    );
   };
 
   const renderTenantCard = (tenant: Tenant) => {
@@ -512,10 +488,7 @@ export default function TenantsScreen({
             No Tenants Found
           </Text>
           <Text style={styles.emptyStateSubtitle}>
-            {selectedRoom === 'All Rooms' 
-              ? 'No tenants in this property yet'
-              : `No tenants in Room: ${selectedRoom} yet`
-            }
+            No tenants in this property yet
           </Text>
           
           {/* Add Tenant Button */}
@@ -578,67 +551,64 @@ export default function TenantsScreen({
           </TouchableOpacity>
         </View>
 
-        {/* Stats Section */}
-        <View style={styles.statsSection}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.statsScrollView}
-            contentContainerStyle={styles.statsScrollContainer}
-          >
-            {statsData.map((item, index) => renderStatsCard(item, index))}
-          </ScrollView>
+        {/* Stats Section - 2 Column Layout */}
+        <View style={styles.statsContainer}>
+          <View style={styles.statsRow}>
+            {/* Left Card */}
+            <View style={styles.statCard}>
+              <View style={styles.statRow}>
+                <View style={styles.statItemLeft}>
+                  <Text style={styles.statLabel}>Total Tenant</Text>
+                  <View style={styles.statValueContainer}>
+                    <Text style={[styles.statValue, { color: '#66BB6A' }]}>{tenantStats.totalTenants}</Text>
+                  </View>
+                </View>
+              </View>
+              <View style={styles.statRow}>
+                <View style={styles.statItemLeft}>
+                  <Text style={styles.statLabel}>Under Notice</Text>
+                  <View style={styles.statValueContainer}>
+                    <Text style={[styles.statValue, { color: '#EF5350' }]}>{tenantStats.underNotice}</Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+            
+            {/* Right Card */}
+            <View style={styles.statCard}>
+              <View style={styles.statRow}>
+                <View style={styles.statItemRight}>
+                  <Text style={styles.statLabel}>Pending Due</Text>
+                  <View style={styles.statValueContainer}>
+                    <Text style={[styles.statValue, { color: '#EF5350' }]}>{tenantStats.pendingDue}</Text>
+                  </View>
+                </View>
+              </View>
+              <View style={styles.statRow}>
+                <View style={styles.statItemRight}>
+                  <Text style={styles.statLabel}>Booking</Text>
+                  <View style={styles.statValueContainer}>
+                    <Text style={[styles.statValue, { color: '#66BB6A' }]}>{tenantStats.booking}</Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </View>
         </View>
 
-        <View style={styles.roomNavigationSection}>
-          <TouchableOpacity 
-            style={[
-              styles.fixedRoomButton,
-              selectedRoom === 'All Rooms' && styles.selectedRoomButton
-            ]}
-            onPress={() => handleRoomSelect('All Rooms')}
-          >
+        {/* Tenants Waiting to Move Section */}
+        <View style={styles.waitingSection}>
+          <View style={styles.waitingContainer}>
+            <Text style={styles.waitingText}>Tenants Waiting to Move</Text>
             <Image
-              source={require('../assets/icons/door-open.png')}
-              style={styles.roomIcon}
+              source={require('../assets/right-arrow.png')}
+              style={styles.arrowIcon}
               resizeMode="contain"
             />
-            <Text style={[
-              styles.fixedRoomButtonText,
-              selectedRoom === 'All Rooms' && styles.selectedRoomButtonText
-            ]}>All Rooms</Text>
+          </View>
+          <TouchableOpacity style={styles.viewButton}>
+            <Text style={styles.viewButtonText}>View</Text>
           </TouchableOpacity>
-          <View style={styles.verticalDivider} />
-
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.roomScrollContainer}
-            contentContainerStyle={styles.roomScrollContent}
-          >
-            {roomsData.map((room, index) => (
-              <TouchableOpacity
-                key={index}
-                style={[
-                  styles.roomScrollButton,
-                  selectedRoom === room && styles.selectedRoomButton
-                ]}
-                onPress={() => handleRoomSelect(room)}
-              >
-                <Image
-                  source={require('../assets/icons/door-open.png')}
-                  style={styles.roomIcon}
-                  resizeMode="contain"
-                />
-                <Text style={[
-                  styles.roomScrollButtonText,
-                  selectedRoom === room && styles.selectedRoomButtonText
-                ]}>
-                  Room: {room}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
         </View>
 
         {/* Tenants List */}
@@ -754,105 +724,112 @@ const styles = StyleSheet.create({
     height: screenHeight * 0.025,
     tintColor: '#000',
   },
-  statsSection: {
-    width: screenWidth * 0.916,
-    height: screenHeight * 0.11875,
-    top: screenHeight * 0.015,
-    left: screenWidth * 0.05,
-    marginBottom: screenHeight * 0.00725,
+  
+  // Stats Section - 2 Column Layout (copied from MainProperty)
+  statsContainer: {
+    paddingHorizontal: screenWidth * 0.05,
+    marginTop: screenHeight * 0.0075,
+    marginBottom: screenHeight * 0.02,
   },
-  statsScrollView: {
-    marginHorizontal: -(screenWidth * 0.055),
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
-  statsScrollContainer: {
-    paddingHorizontal: screenWidth * 0.055,
-  },
-  statsCardDark: {
-    width: screenWidth * 0.233,
-    height: screenHeight * 0.0975,
-    backgroundColor: '#242424',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#FFF',
-    padding: screenHeight * 0.02,
-    marginRight: screenWidth * 0.033,
-    shadowColor: '#171A1F',
-    shadowOffset: {
-      width: 0,
-      height: 0,
-    },
-    shadowOpacity: 0.07,
-    shadowRadius: 1,
-    elevation: 2,
-    position: 'relative',
-  },
-  statsCardLight: {
-    width: screenWidth * 0.233,
-    height: screenHeight * 0.0975,
+  statCard: {
+    width: screenWidth * 0.43,
+    height: screenHeight * 0.125,
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#EAE7E7',
-    padding: screenHeight * 0.02,
-    marginRight: screenWidth * 0.033,
-    shadowColor: '#171A1F',
+    borderColor: '#E5E5E5',
+    paddingVertical: screenHeight * 0.015,
+    paddingHorizontal: screenWidth * 0.04,
+    justifyContent: 'space-between',
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 0,
+      height: 2,
     },
-    shadowOpacity: 0.07,
-    shadowRadius: 1,
-    elevation: 2,
-    position: 'relative',
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 0.5,
   },
-  statsTextDark: {
-    fontFamily: 'Roboto-Medium',
-    fontWeight: '500',
-    fontSize: 14,
-    lineHeight: screenHeight * 0.025,
-    letterSpacing: 0,
-    textAlign: 'center',
-    color: '#FFFFFF',
-    width: screenWidth * 0.0472,
-    height: screenHeight * 0.025,
-    top: screenHeight * 0.02125,
-    left: screenWidth * 0.0916,
-    position: 'absolute',
+  statRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  statsNumberDark: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#FFD600',
-    fontFamily: 'Inter-Bold',
-    lineHeight: screenHeight * 0.04,
-    width: '100%',
-    height: screenHeight * 0.035,
-    top: screenHeight * 0.025,
-    textAlign: 'center',
+  statItemLeft: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  statsTextLight: {
-    fontFamily: 'Roboto-Medium',
-    fontWeight: '500',
-    fontSize: 14,
-    lineHeight: screenHeight * 0.025,
-    letterSpacing: 0,
-    textAlign: 'center',
+  statItemRight: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  statLabel: {
+    fontSize: 16,
+    fontWeight: '600',
     color: '#000000',
-    width: screenWidth * 0.2,
-    height: screenHeight * 0.025,
-    top: screenHeight * 0.02125,
-    left: screenWidth * 0.0139,
-    position: 'absolute',
+    fontFamily: 'Roboto-Medium',
+    flex: 1,
   },
-  statsNumberLight: {
-    fontSize: 22,
+  statValueContainer: {
+    minWidth: screenWidth * 0.08,
+    height: screenWidth * 0.08,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statValue: {
+    fontSize: 18,
     fontWeight: '700',
-    fontFamily: 'Inter-Bold',
-    lineHeight: screenHeight * 0.04,
-    width: '100%',
-    height: screenHeight * 0.035,
-    top: screenHeight * 0.025,
-    textAlign: 'center',
+    fontFamily: 'Roboto-Medium',
+    lineHeight: 20,
+  },
+  waitingSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#000000',
+    marginHorizontal: screenWidth * 0.05,
+    borderRadius: 8,
+    paddingVertical: screenHeight * 0.008,
+    paddingHorizontal: screenWidth * 0.04,
+  },
+  waitingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  waitingText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    fontFamily: 'Roboto-Medium',
+    marginRight: screenWidth * 0.02,
+  },
+  arrowIcon: {
+    width: screenWidth * 0.08,
+    height: screenWidth * 0.05,
+    tintColor: '#FFECA7',
+  },
+  viewButton: {
+    backgroundColor: '#FFECA7',
+    paddingVertical: screenHeight * 0.005,
+    paddingHorizontal: screenWidth * 0.06,
+    borderRadius: 6,
+  },
+  viewButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#000000',
+    fontFamily: 'Roboto-Medium',
   },
   tenantsSection: {
     paddingHorizontal: screenWidth * 0.05,
@@ -886,7 +863,6 @@ const styles = StyleSheet.create({
     elevation: 1,
     zIndex: 10,
   },
-
   actionPanel: {
     position: 'absolute',
     top: 0,
@@ -1047,84 +1023,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#66BB6A',
     fontFamily: 'Roboto-Medium',
-  },
-  roomNavigationSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: screenHeight * 0.005,
-    height: screenHeight * 0.045,
-    backgroundColor: '#FFFFFF',
-    paddingLeft: screenWidth * 0.05,
-  },
-  fixedRoomButton: {
-    paddingHorizontal: screenWidth * 0.03,
-    paddingVertical: screenHeight * 0.008,
-    backgroundColor: '#FFF4B8',
-    borderRadius: 6,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
-    width: screenWidth * 0.27,
-    height: screenHeight * 0.035,
-    minWidth: screenWidth * 0.25,
-    borderWidth: 1,
-    borderColor: '#FFFFFF',
-  },
-  selectedRoomButton: {
-    backgroundColor: '#FED232',
-    borderColor: '#FFC107',
-  },
-  fixedRoomButtonText: {
-    fontFamily: 'Roboto-Medium',
-    fontWeight: '500',
-    fontSize: 12,
-    color: '#666666',
-    textAlign: 'center',
-    marginLeft: screenWidth * 0.01,
-  },
-  selectedRoomButtonText: {
-    fontWeight: '600',
-    color: '#000000',
-  },
-  roomIcon: {
-    width: screenWidth * 0.035,
-    height: screenWidth * 0.035,
-    tintColor: '#000000',
-  },
-  verticalDivider: {
-    width: 1,
-    height: screenHeight * 0.025,
-    backgroundColor: '#E0E0E0',
-    marginHorizontal: screenWidth * 0.03,
-  },
-  roomScrollContainer: {
-    flex: 1,
-  },
-  roomScrollContent: {
-    alignItems: 'center',
-  },
-  roomScrollButton: {
-    paddingHorizontal: screenWidth * 0.03,
-    paddingVertical: screenHeight * 0.008,
-    backgroundColor: '#FFF4B8',
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
-    marginRight: screenWidth * 0.025,
-    borderWidth: 1,
-    borderColor: '#FFFFFF',
-    width: screenWidth * 0.27,
-    height: screenHeight * 0.035,
-    minWidth: screenWidth * 0.25,
-  },
-  roomScrollButtonText: {
-    fontFamily: 'Roboto-Medium',
-    fontWeight: '500',
-    fontSize: 12,
-    color: '#666666',
-    textAlign: 'center',
-    marginLeft: screenWidth * 0.01,
   },
   emptyStateContainer: {
     flex: 1,

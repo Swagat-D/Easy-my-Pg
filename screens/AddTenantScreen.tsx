@@ -451,7 +451,7 @@ export default function AddTenantScreen({ onBackPress }: AddTenantScreenProps) {
                   {moveInDate || 'Select date'}
                 </Text>
                 <Image
-                  source={require('../assets/icons/briefcase.png')}
+                  source={require('../assets/calendar.png')}
                   style={styles.iconImage}
                 />
               </TouchableOpacity>
@@ -467,7 +467,7 @@ export default function AddTenantScreen({ onBackPress }: AddTenantScreenProps) {
                   {moveOutDate || 'Select date'}
                 </Text>
                 <Image
-                  source={require('../assets/icons/briefcase.png')}
+                  source={require('../assets/calendar.png')}
                   style={styles.iconImage}
                 />
               </TouchableOpacity>
