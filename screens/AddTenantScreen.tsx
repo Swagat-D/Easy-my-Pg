@@ -316,7 +316,7 @@ export default function AddTenantScreen({ onBackPress }: AddTenantScreenProps) {
       <View style={styles.topNavbar}>
         <TouchableOpacity style={styles.backButton} onPress={onBackPress}>
           <Image
-            source={require('../assets/icons/arrow-right.png')}
+            source={require('../assets/right-arrow.png')}
             style={styles.backArrowImage}
           />
         </TouchableOpacity>

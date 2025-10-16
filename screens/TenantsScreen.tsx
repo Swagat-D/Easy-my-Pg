@@ -4,18 +4,17 @@ import {
   Text,
   View,
   ScrollView,
-  SafeAreaView,
   StatusBar,
   TouchableOpacity,
   Image,
   TextInput,
   Dimensions,
   PanResponder,
-  Animated,
-  Linking
+  Animated
 } from 'react-native';
 import Navbar from './common/Navbar';
 import BottomTabNavigator from './common/Tab';
+import TenantDetailsModal from './common/TenantDetailsModal';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -50,8 +49,8 @@ export default function TenantsScreen({
   onTenantProfilePress
 }: TenantsScreenProps) {
   const [searchText, setSearchText] = useState('');
-  
-  const animatedValues = useRef<{[key: string]: Animated.Value}>({});
+  const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
   
   const floatingButtonPosition = useRef(new Animated.ValueXY({
     x: screenWidth - 80, 
@@ -111,13 +110,6 @@ export default function TenantsScreen({
     }
   ];
 
-  const getAnimatedValue = (tenantId: string) => {
-    if (!animatedValues.current[tenantId]) {
-      animatedValues.current[tenantId] = new Animated.Value(0);
-    }
-    return animatedValues.current[tenantId];
-  };
-
   // Calculate tenant statistics
   const calculateTenantStats = () => {
     const totalTenants = tenantsData.length;
@@ -174,94 +166,14 @@ export default function TenantsScreen({
     }
   };
 
-  const resetCardPosition = (tenantId: string) => {
-    Animated.timing(getAnimatedValue(tenantId), {
-      toValue: 0,
-      duration: 200,
-      useNativeDriver: true,
-    }).start();
+  const handleTenantPress = (tenant: Tenant) => {
+    setSelectedTenant(tenant);
+    setIsModalVisible(true);
   };
 
-  const handleDeleteTenant = (tenantId: string) => {
-    console.log('Delete tenant:', tenantId);
-    resetCardPosition(tenantId);
-  };
-
-  const handleChangeRoom = (tenantId: string) => {
-    console.log('Change room for tenant:', tenantId);
-    resetCardPosition(tenantId);
-  };
-
-  const handleChangeProperty = (tenantId: string) => {
-    console.log('Change property for tenant:', tenantId);
-    resetCardPosition(tenantId);
-  };
-
-  const handlePutOnNotice = (tenantId: string) => {
-    console.log('Put tenant on notice:', tenantId);
-    resetCardPosition(tenantId);
-  };
-
-  const handleCall = (tenantId: string) => {
-    const tenant = tenantsData.find(t => t.id === tenantId);
-    if (tenant) {
-      Linking.openURL(`tel:${tenant.mobile}`);
-    }
-    resetCardPosition(tenantId);
-  };
-
-  const handleWhatsApp = (tenantId: string) => {
-    const tenant = tenantsData.find(t => t.id === tenantId);
-    if (tenant) {
-      const phoneNumber = tenant.mobile.replace(/\+/g, '').replace(/\s/g, '');
-      Linking.openURL(`whatsapp://send?phone=${phoneNumber}`);
-    }
-    resetCardPosition(tenantId);
-  };
-
-  const createPanResponder = (tenant: Tenant) => {
-    const animatedValue = getAnimatedValue(tenant.id);
-    let startTime = 0;
-    let startPosition = { x: 0, y: 0 };
-    
-    return PanResponder.create({
-      onStartShouldSetPanResponder: (evt) => true,
-      onMoveShouldSetPanResponder: (evt, gestureState) => {
-        return Math.abs(gestureState.dx) > Math.abs(gestureState.dy) && Math.abs(gestureState.dx) > 20;
-      },
-      onPanResponderGrant: (evt) => {
-        startTime = Date.now();
-        startPosition = { x: evt.nativeEvent.pageX, y: evt.nativeEvent.pageY };
-        animatedValue.extractOffset();
-      },
-      onPanResponderMove: (evt, gestureState) => {
-        const maxDrag = -screenWidth * 0.45; 
-        const newValue = Math.min(0, Math.max(gestureState.dx, maxDrag));
-        animatedValue.setValue(newValue);
-      },
-      onPanResponderRelease: (evt, gestureState) => {
-        animatedValue.flattenOffset();
-        
-        const duration = Date.now() - startTime;
-        const distance = Math.sqrt(gestureState.dx * gestureState.dx + gestureState.dy * gestureState.dy);
-        
-        if (duration < 300 && distance < 15) {
-          if (onTenantProfilePress) {
-            onTenantProfilePress(tenant);
-          }
-          animatedValue.setValue(0);
-        } else {
-          const threshold = -screenWidth * 0.45; 
-          const shouldOpen = gestureState.dx < threshold;
-          
-          Animated.timing(animatedValue, {
-            toValue: shouldOpen ? -screenWidth * 0.45 : 0, 
-            duration: 200, 
-            useNativeDriver: true,
-          }).start();
-        }
-      },
-    });
+  const handleCloseModal = () => {
+    setIsModalVisible(false);
+    setSelectedTenant(null);
   };
 
   const floatingButtonPanResponder = PanResponder.create({
@@ -320,153 +232,81 @@ export default function TenantsScreen({
   };
 
   const renderTenantCard = (tenant: Tenant) => {
-    const panResponder = createPanResponder(tenant);
-    
     return (
-      <View key={tenant.id} style={styles.tenantCardContainer}>
-        {/* Action Panel (Always rendered behind card) */}
-        <View style={styles.actionPanel}>
-          <View style={styles.actionColumn}>
-            <TouchableOpacity 
-              style={[styles.actionButton, styles.deleteButton]}
-              onPress={() => handleDeleteTenant(tenant.id)}
-            >
-              <Text style={styles.deleteButtonText}>Delete Tenant</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={[styles.actionButton, styles.changeRoomButton]}
-              onPress={() => handleChangeRoom(tenant.id)}
-            >
-              <Text style={styles.actionButtonText}>Change Room</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={[styles.actionButton, styles.changePropertyButton]}
-              onPress={() => handleChangeProperty(tenant.id)}
-            >
-              <Text style={styles.actionButtonText}>Change Property</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={[styles.actionButton, styles.noticeButton]}
-              onPress={() => handlePutOnNotice(tenant.id)}
-            >
-              <Text style={styles.actionButtonText}>Put On Notice</Text>
-            </TouchableOpacity>
-          </View>
+      <TouchableOpacity 
+        key={tenant.id} 
+        style={styles.tenantCard}
+        onPress={() => handleTenantPress(tenant)}
+        activeOpacity={0.7}
+      >
+        {/* Profile Image */}
+        <View style={styles.profileImageContainer}>
+          <Image
+            source={require('../assets/pht.png')}
+            style={styles.profileImage}
+            resizeMode="cover"
+          />
+        </View>
+
+        {/* Tenant Details */}
+        <View style={styles.tenantDetails}>
+          <Text style={styles.tenantName}>{tenant.name}</Text>
           
-          <View style={styles.contactColumn}>
-            <TouchableOpacity 
-              style={[styles.contactButton, styles.callButton]}
-              onPress={() => handleCall(tenant.id)}
-            >
-              <Image
-                source={require('../assets/call.png')}
-                style={styles.contactIcon}
-              />
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={[styles.contactButton, styles.whatsappButton]}
-              onPress={() => handleWhatsApp(tenant.id)}
-            >
-              <Image
-                source={require('../assets/whatsApp.png')}
-                style={styles.contactIcon}
-              />
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={[styles.contactButton, styles.moreButton]}
-              onPress={() => console.log('More options')}
-            >
-              <Text style={styles.moreText}>•••</Text>
-            </TouchableOpacity>
+          {/* Room Info */}
+          <View style={styles.detailRow}>
+            <Image
+              source={require('../assets/icons/door-open.png')}
+              style={styles.detailIcon}
+              resizeMode="contain"
+            />
+            <Text style={styles.detailLabel}>Room: </Text>
+            <Text style={styles.detailValue}>{tenant.room}</Text>
+          </View>
+
+          {/* Under Notice */}
+          <View style={styles.detailRow}>
+            <Image
+              source={require('../assets/icons/briefcase.png')}
+              style={styles.detailIcon}
+              resizeMode="contain"
+            />
+            <Text style={styles.detailLabel}>Under Notice: </Text>
+            <Text style={[
+              styles.detailValuea,
+            ]}>
+              {tenant.underNotice ? 'Yes' : 'No'}
+            </Text>
+          </View>
+
+          {/* Rent Due */}
+          <View style={styles.detailRow}>
+            <Image
+              source={require('../assets/icons/wallet.png')}
+              style={styles.detailIcon}
+              resizeMode="contain"
+            />
+            <Text style={styles.detailLabel}>Rent Due: </Text>
+            <Text style={[
+              styles.detailValue,
+            ]}>
+              {tenant.rentDue ? 'Yes' : 'No'}
+            </Text>
+          </View>
+
+          {/* Joined Date */}
+          <View style={styles.detailRow}>
+            <Image
+              source={require('../assets/icons/user-plus.png')}
+              style={styles.detailIcon}
+              resizeMode="contain"
+            />
+            <Text style={styles.detailLabel}>Joined: </Text>
+            <Text style={[styles.detailValue, { color: '#F44336' }]}>
+              {tenant.joinedDate}
+            </Text>
           </View>
         </View>
-        
-        {/* Main Tenant Card with PanResponder */}
-        <Animated.View 
-          style={[
-            styles.tenantCard,
-            {
-              transform: [{
-                translateX: getAnimatedValue(tenant.id)
-              }]
-            }
-          ]}
-          {...panResponder.panHandlers}
-        >
-          {/* Profile Image */}
-          <View style={styles.profileImageContainer}>
-            <Image
-              source={require('../assets/pht.png')}
-              style={styles.profileImage}
-              resizeMode="cover"
-            />
-          </View>
-
-          {/* Tenant Details */}
-          <View style={styles.tenantDetails}>
-            <Text style={styles.tenantName}>{tenant.name}</Text>
-            
-            {/* Room Info */}
-            <View style={styles.detailRow}>
-              <Image
-                source={require('../assets/icons/door-open.png')}
-                style={styles.detailIcon}
-                resizeMode="contain"
-              />
-              <Text style={styles.detailLabel}>Room: </Text>
-              <Text style={styles.detailValue}>{tenant.room}</Text>
-            </View>
-
-            {/* Under Notice */}
-            <View style={styles.detailRow}>
-              <Image
-                source={require('../assets/icons/briefcase.png')}
-                style={styles.detailIcon}
-                resizeMode="contain"
-              />
-              <Text style={styles.detailLabel}>Under Notice: </Text>
-              <Text style={[
-                styles.detailValuea,
-              ]}>
-                {tenant.underNotice ? 'Yes' : 'No'}
-              </Text>
-            </View>
-
-            {/* Rent Due */}
-            <View style={styles.detailRow}>
-              <Image
-                source={require('../assets/icons/wallet.png')}
-                style={styles.detailIcon}
-                resizeMode="contain"
-              />
-              <Text style={styles.detailLabel}>Rent Due: </Text>
-              <Text style={[
-                styles.detailValue,
-              ]}>
-                {tenant.rentDue ? 'Yes' : 'No'}
-              </Text>
-            </View>
-
-            {/* Joined Date */}
-            <View style={styles.detailRow}>
-              <Image
-                source={require('../assets/icons/user-plus.png')}
-                style={styles.detailIcon}
-                resizeMode="contain"
-              />
-              <Text style={styles.detailLabel}>Joined: </Text>
-              <Text style={[styles.detailValue, { color: '#F44336' }]}>
-                {tenant.joinedDate}
-              </Text>
-            </View>
-          </View>
-        </Animated.View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
@@ -504,7 +344,7 @@ export default function TenantsScreen({
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       
       {/* Navbar */}
@@ -519,7 +359,7 @@ export default function TenantsScreen({
           }
         }}
       />
-
+    
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Search and Filter Section */}
         <View style={styles.searchFilterContainer}>
@@ -649,7 +489,15 @@ export default function TenantsScreen({
           <Text style={styles.floatingButtonText}>+</Text>
         </TouchableOpacity>
       </Animated.View>
-    </SafeAreaView>
+
+      {/* Tenant Details Modal */}
+      <TenantDetailsModal
+        visible={isModalVisible }
+        onClose={handleCloseModal}
+        tenant={selectedTenant}
+        onTenantProfilePress={onTenantProfilePress}
+      />
+    </View>
   );
 }
 
@@ -724,8 +572,6 @@ const styles = StyleSheet.create({
     height: screenHeight * 0.025,
     tintColor: '#000',
   },
-  
-  // Stats Section - 2 Column Layout (copied from MainProperty)
   statsContainer: {
     paddingHorizontal: screenWidth * 0.05,
     marginTop: screenHeight * 0.0075,
@@ -800,7 +646,7 @@ const styles = StyleSheet.create({
     marginHorizontal: screenWidth * 0.05,
     borderRadius: 8,
     paddingVertical: screenHeight * 0.008,
-    paddingHorizontal: screenWidth * 0.04,
+    paddingHorizontal: screenWidth * 0.085,
   },
   waitingContainer: {
     flexDirection: 'row',
@@ -808,11 +654,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   waitingText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
     color: '#FFFFFF',
-    fontFamily: 'Roboto-Medium',
-    marginRight: screenWidth * 0.02,
+    fontFamily: 'Roboto-SemiBold',
+    marginRight: screenWidth * 0.03,
   },
   arrowIcon: {
     width: screenWidth * 0.08,
@@ -847,126 +693,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 1,
     elevation: 4,
-    zIndex: 10,
-    position: 'relative',
-  },
-  tenantCardContainer: {
-    position: 'relative',
     marginBottom: screenHeight * 0.02,
-    overflow: 'hidden', 
-    borderRadius: 12, 
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#171A1F',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.08,
-    shadowRadius: 1,
-    elevation: 1,
-    zIndex: 10,
-  },
-  actionPanel: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    width: screenWidth * 0.45,
-    height: '100%',
-    backgroundColor: '#FFD600',
-    borderTopRightRadius: 12,
-    borderBottomRightRadius: 12,
-    flexDirection: 'row',
-    paddingHorizontal: screenWidth * 0.015,
-    paddingVertical: screenHeight * 0.008,
-    zIndex: 0, 
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  actionColumn: {
-    flex: 2.2,
-    justifyContent: 'space-around',
-    paddingRight: screenWidth * 0.015,
-    paddingLeft: screenWidth * 0.01,
-  },
-  contactColumn: {
-    flex: 1,
-    justifyContent: 'space-evenly',
-    alignItems: 'center',
-    paddingRight: screenWidth * 0.01,
-    paddingVertical: screenHeight * 0.01,
-    height: '100%',
-    display: 'flex',
-  },
-  actionButton: {
-    backgroundColor: 'transparent',
-    paddingVertical: screenHeight * 0.005,
-    paddingHorizontal: screenWidth * 0.01,
-    borderRadius: 4,
-    marginVertical: screenHeight * 0.001,
-    alignItems: 'flex-start',
-  },
-  deleteButton: {
-    backgroundColor: 'transparent',
-  },
-  deleteButtonText: {
-    fontFamily: 'Roboto-Medium',
-    fontWeight: '600',
-    fontSize: screenWidth * 0.032,
-    color: '#FF4444',
-    textAlign: 'left',
-    lineHeight: screenHeight * 0.02,
-  },
-  changeRoomButton: {
-    backgroundColor: 'transparent',
-  },
-  changePropertyButton: {
-    backgroundColor: 'transparent',
-  },
-  noticeButton: {
-    backgroundColor: 'transparent',
-  },
-  actionButtonText: {
-    fontFamily: 'Roboto-Medium',
-    fontWeight: '600',
-    fontSize: screenWidth * 0.032,
-    color: '#000000',
-    textAlign: 'left',
-    lineHeight: screenHeight * 0.02,
-  },
-  contactButton: {
-    width: screenWidth * 0.09,
-    height: screenWidth * 0.09,
-    borderRadius: screenWidth * 0.045,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginVertical: screenHeight * 0.003,
-    display: 'flex',
-  },
-  callButton: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 2,
-    borderColor: '#000000',
-    marginTop: -(screenHeight * 0.005),
-  },
-  whatsappButton: {
-    backgroundColor: '#25D366',
-  },
-  moreButton: {
-    backgroundColor: '#000000',
-  },
-  contactIcon: {
-    width: screenWidth * 0.04,
-    height: screenWidth * 0.04,
-    resizeMode: 'contain',
   },
 
-  moreText: {
-    fontFamily: 'Inter-Bold',
-    fontWeight: '700',
-    fontSize: screenWidth * 0.035,
-    color: '#FFFFFF',
-    textAlign: 'center',
-    textAlignVertical: 'center',
-    lineHeight: screenWidth * 0.035,
-    includeFontPadding: false,
-  },
   profileImageContainer: {
     width: screenWidth * 0.295,
     height: screenHeight * 0.14625,

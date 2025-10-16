@@ -86,7 +86,7 @@ export default function AddPropertyScreen({
           <TouchableOpacity style={styles.floorsButton} onPress={handleFloorsPress}>
             <Text style={styles.floorsButtonText}>Total No Of Floors ?</Text>
             <Image
-              source={require('../assets/icons/arrow-right.png')}
+              source={require('../assets/right-arrow.png')}
               style={styles.arrowIcon}
               resizeMode="contain"
             />

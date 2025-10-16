@@ -134,7 +134,7 @@ export default function AddUnits({
       <View style={styles.topNavbar}>
         <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
           <Image
-            source={require('../assets/icons/arrow-right.png')}
+            source={require('../assets/right-arrow.png')}
             style={styles.backArrowImage}
             resizeMode="contain"
           />
