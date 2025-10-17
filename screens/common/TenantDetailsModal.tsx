@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   StyleSheet,
   Text,
@@ -9,6 +9,8 @@ import {
   Image,
   Linking
 } from 'react-native';
+import DocumentsModal from './DocumentsModal';
+import ShiftTenantModal from './ShiftTenantModal';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -36,6 +38,9 @@ const TenantDetailsModal: React.FC<TenantDetailsModalProps> = ({
   tenant,
   onTenantProfilePress,
 }) => {
+  const [showDocumentsModal, setShowDocumentsModal] = useState(false);
+  const [showShiftTenantModal, setShowShiftTenantModal] = useState(false);
+
   if (!tenant) return null;
 
   // Calculate rent and deposit (placeholder values since not in original data)
@@ -70,12 +75,12 @@ const TenantDetailsModal: React.FC<TenantDetailsModalProps> = ({
 
   const handleChangeRoom = () => {
     console.log('Change room for tenant:', tenant.id);
-    onClose();
+    setShowShiftTenantModal(true);
   };
 
   const handleChangeProperty = () => {
-    console.log('Change property for tenant:', tenant.id);
-    onClose();
+    console.log('documents', tenant.id);
+    setShowDocumentsModal(true);
   };
 
   const handlePutOnNotice = () => {
@@ -163,7 +168,7 @@ const TenantDetailsModal: React.FC<TenantDetailsModalProps> = ({
                     style={styles.actionButton}
                     onPress={handleChangeProperty}
                   >
-                    <Text style={styles.actionButtonText}>Change Property</Text>
+                    <Text style={styles.actionButtonText}>Documents</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity 
@@ -207,6 +212,33 @@ const TenantDetailsModal: React.FC<TenantDetailsModalProps> = ({
             </View>
           </View>
         </View>
+
+        {/* Documents Modal */}
+        <DocumentsModal
+          visible={showDocumentsModal}
+          onClose={() => setShowDocumentsModal(false)}
+          tenantName={tenant.name}
+        />
+
+        {/* Shift Tenant Modal */}
+        <ShiftTenantModal
+          visible={showShiftTenantModal}
+          onClose={() => setShowShiftTenantModal(false)}
+          onSelectNewProperty={() => {
+            setShowShiftTenantModal(false);
+            console.log('Select new property for:', tenant.name);
+          }}
+          onSelectNewRoom={() => {
+            setShowShiftTenantModal(false);
+            console.log('Select new room for:', tenant.name);
+          }}
+          tenantData={{
+            name: tenant.name,
+            room: tenant.room,
+            property: 'Current Property', // You can replace this with actual property data
+            profileImage: tenant.profileImage,
+          }}
+        />
       </View>
     </Modal>
   );

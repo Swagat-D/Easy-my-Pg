@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   Text,
@@ -12,23 +12,11 @@ import {
   TextInput,
   Modal,
   FlatList,
-  Platform,
   KeyboardAvoidingView,
-  Keyboard
+  Platform
 } from 'react-native';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
-
-interface Property {
-  id: string;
-  name: string;
-}
-
-interface Room {
-  id: string;
-  name: string;
-  property: string;
-}
 
 interface DropdownOption {
   id: string;
@@ -41,100 +29,83 @@ interface AddTenantScreenProps {
 }
 
 export default function AddTenantScreen({ onBackPress }: AddTenantScreenProps) {
-  // TextInput refs for focus management
-  const fixedRentRef = useRef<TextInput>(null);
-  const securityDepositRef = useRef<TextInput>(null);
-  const advanceAmountRef = useRef<TextInput>(null);
-  const bookingAmountRef = useRef<TextInput>(null);
-  const scrollViewRef = useRef<ScrollView>(null);
-
-  // Keyboard state
-  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
-
-  // Form state
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [altPhone, setAltPhone] = useState('');
-  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
-  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
-  const [moveInDate, setMoveInDate] = useState('');
+  // Current step (1, 2, or 3)
+  const [currentStep, setCurrentStep] = useState(1);
+  
+  const [fullName, setFullName] = useState('');
+  const [gender, setGender] = useState<DropdownOption | null>(null);
+  const [profession, setProfession] = useState<DropdownOption | null>(null);
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [email, setEmail] = useState('');
+  const [permanentAddress, setPermanentAddress] = useState('');
+  const [pincode, setPincode] = useState('');
+  const [state, setState] = useState<DropdownOption | null>(null);
+  const [property, setProperty] = useState<DropdownOption | null>(null);
+  const [roomNo, setRoomNo] = useState<DropdownOption | null>(null);
+  const [joiningDate, setJoiningDate] = useState('');
   const [moveOutDate, setMoveOutDate] = useState('');
   const [lockInPeriod, setLockInPeriod] = useState<DropdownOption | null>(null);
   const [noticePeriod, setNoticePeriod] = useState<DropdownOption | null>(null);
   const [agreementPeriod, setAgreementPeriod] = useState<DropdownOption | null>(null);
-  
-  // New state for additional fields
-  const [rentalFrequency, setRentalFrequency] = useState<DropdownOption | null>(null);
-  const [addRentOn, setAddRentOn] = useState<DropdownOption | null>(null);
-  const [fixedRent, setFixedRent] = useState('');
+  const [rentalType, setRentalType] = useState<DropdownOption | null>(null);
+
+  // Step 3 state variables
+  const [automaticRentReminder, setAutomaticRentReminder] = useState(false);
+  const [rentPrice, setRentPrice] = useState('');
   const [securityDeposit, setSecurityDeposit] = useState('');
-  const [roomElectricityMeter, setRoomElectricityMeter] = useState('');
-  const [tenantElectricityMeter, setTenantElectricityMeter] = useState('');
-  const [bookedBy, setBookedBy] = useState<DropdownOption | null>(null);
-  const [advanceAmount, setAdvanceAmount] = useState('');
-  const [bookingAmount, setBookingAmount] = useState('');
+  const [electricityReading, setElectricityReading] = useState('');
 
-  // Keyboard listeners
-  useEffect(() => {
-    const keyboardDidShowListener = Keyboard.addListener(
-      'keyboardDidShow',
-      () => {
-        setKeyboardVisible(true);
-      }
-    );
-    const keyboardDidHideListener = Keyboard.addListener(
-      'keyboardDidHide',
-      () => {
-        setKeyboardVisible(false);
-      }
-    );
-
-    return () => {
-      keyboardDidShowListener?.remove();
-      keyboardDidHideListener?.remove();
-    };
-  }, []);
-
-  // Modal states
+  const [showGenderModal, setShowGenderModal] = useState(false);
+  const [showProfessionModal, setShowProfessionModal] = useState(false);
+  const [showStateModal, setShowStateModal] = useState(false);
   const [showPropertyModal, setShowPropertyModal] = useState(false);
   const [showRoomModal, setShowRoomModal] = useState(false);
   const [showLockInModal, setShowLockInModal] = useState(false);
   const [showNoticeModal, setShowNoticeModal] = useState(false);
   const [showAgreementModal, setShowAgreementModal] = useState(false);
-  const [showRentalFrequencyModal, setShowRentalFrequencyModal] = useState(false);
-  const [showAddRentOnModal, setShowAddRentOnModal] = useState(false);
-  const [showBookedByModal, setShowBookedByModal] = useState(false);
-  
-  // Date picker states
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [datePickerType, setDatePickerType] = useState('');
-  const [currentDatePickerDate, setCurrentDatePickerDate] = useState(new Date());
-  const [selectedDay, setSelectedDay] = useState('');
-  const [selectedMonth, setSelectedMonth] = useState('');
-  const [selectedYear, setSelectedYear] = useState('');
-  
-  // Custom popup states
-  const [showCustomPopup, setShowCustomPopup] = useState(false);
-  const [popupTitle, setPopupTitle] = useState('');
-  const [popupMessage, setPopupMessage] = useState('');
-  const [popupType, setPopupType] = useState('info');
-  const [showInputPopup, setShowInputPopup] = useState(false);
-  const [inputPopupTitle, setInputPopupTitle] = useState('');
-  const [inputPopupValue, setInputPopupValue] = useState('');
-  const [inputPopupCallback, setInputPopupCallback] = useState<(value: string) => void>(() => {});
+  const [showRentalTypeModal, setShowRentalTypeModal] = useState(false);
 
-  // Data arrays
-  const properties: Property[] = [
-    { id: '1', name: 'Sunrise Apartments' },
-    { id: '2', name: 'Green Valley Heights' },
-    { id: '3', name: 'Metro Plaza' },
+  const [errorMessage, setErrorMessage] = useState('');
+
+  // Date picker states
+  const [showJoiningDatePicker, setShowJoiningDatePicker] = useState(false);
+  const [showMoveOutDatePicker, setShowMoveOutDatePicker] = useState(false);
+
+  // Success message state
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+
+  const genderOptions: DropdownOption[] = [
+    { id: '1', label: 'Male', value: 'male' },
+    { id: '2', label: 'Female', value: 'female' },
+    { id: '3', label: 'Other', value: 'other' },
   ];
 
-  const rooms: Room[] = [
-    { id: '1', name: 'Room 101', property: '1' },
-    { id: '2', name: 'Room 102', property: '1' },
-    { id: '3', name: 'Room 201', property: '2' },
-    { id: '4', name: 'Room 301', property: '3' },
+  const professionOptions: DropdownOption[] = [
+    { id: '1', label: 'Student', value: 'student' },
+    { id: '2', label: 'Working Professional', value: 'working' },
+    { id: '3', label: 'Business', value: 'business' },
+    { id: '4', label: 'Other', value: 'other' },
+  ];
+
+  const stateOptions: DropdownOption[] = [
+    { id: '1', label: 'Maharashtra', value: 'maharashtra' },
+    { id: '2', label: 'Karnataka', value: 'karnataka' },
+    { id: '3', label: 'Delhi', value: 'delhi' },
+    { id: '4', label: 'Gujarat', value: 'gujarat' },
+    { id: '5', label: 'Tamil Nadu', value: 'tamil_nadu' },
+  ];
+
+  const propertyOptions: DropdownOption[] = [
+    { id: '1', label: 'Sunrise Apartments', value: 'sunrise' },
+    { id: '2', label: 'Green Valley Heights', value: 'green_valley' },
+    { id: '3', label: 'Metro Plaza', value: 'metro_plaza' },
+  ];
+
+  const roomOptions: DropdownOption[] = [
+    { id: '1', label: 'Room 101', value: 'room_101' },
+    { id: '2', label: 'Room 102', value: 'room_102' },
+    { id: '3', label: 'Room 201', value: 'room_201' },
+    { id: '4', label: 'Room 301', value: 'room_301' },
   ];
 
   const lockInOptions: DropdownOption[] = [
@@ -143,379 +114,483 @@ export default function AddTenantScreen({ onBackPress }: AddTenantScreenProps) {
     { id: '3', label: '12 Months', value: '12' },
   ];
 
-  const noticePeriodOptions: DropdownOption[] = [
+  const noticeOptions: DropdownOption[] = [
     { id: '1', label: '15 Days', value: '15' },
     { id: '2', label: '30 Days', value: '30' },
     { id: '3', label: '60 Days', value: '60' },
   ];
 
-  const agreementPeriodOptions: DropdownOption[] = [
+  const agreementOptions: DropdownOption[] = [
     { id: '1', label: '11 Months', value: '11' },
     { id: '2', label: '1 Year', value: '12' },
     { id: '3', label: '2 Years', value: '24' },
   ];
 
-  const rentalFrequencyOptions: DropdownOption[] = [
+  const rentalTypeOptions: DropdownOption[] = [
     { id: '1', label: 'Monthly', value: 'monthly' },
     { id: '2', label: 'Quarterly', value: 'quarterly' },
-    { id: '3', label: 'Half Yearly', value: 'half-yearly' },
+    { id: '3', label: 'Half Yearly', value: 'half_yearly' },
     { id: '4', label: 'Yearly', value: 'yearly' },
   ];
 
-  const addRentOnOptions: DropdownOption[] = [
-    { id: '1', label: 'Room/Flat', value: 'room' },
-    { id: '2', label: 'Bed', value: 'bed' },
-  ];
-
-  const bookedByOptions: DropdownOption[] = [
-    { id: '1', label: 'Self', value: 'self' },
-    { id: '2', label: 'Agent', value: 'agent' },
-    { id: '3', label: 'Referral', value: 'referral' },
-  ];
-
-  // Utility functions
-  const showCustomAlert = (title: string, message: string, type: 'info' | 'error' | 'success' = 'info') => {
-    setPopupTitle(title);
-    setPopupMessage(message);
-    setPopupType(type);
-    setShowCustomPopup(true);
-  };
-
-  const showInputAlert = (title: string, defaultValue: string, callback: (value: string) => void) => {
-    setInputPopupTitle(title);
-    setInputPopupValue(defaultValue);
-    setInputPopupCallback(() => callback);
-    setShowInputPopup(true);
-  };
-
   // Date picker functions
-  const openDatePicker = (type: string) => {
-    setDatePickerType(type);
-    const today = new Date();
-    setCurrentDatePickerDate(today);
-    setSelectedDay(today.getDate().toString());
-    setSelectedMonth((today.getMonth() + 1).toString());
-    setSelectedYear(today.getFullYear().toString());
-    setShowDatePicker(true);
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
   };
 
-  const handleDateSelect = () => {
-    if (!selectedDay || !selectedMonth || !selectedYear) {
-      showCustomAlert('Invalid Date', 'Please select day, month and year.', 'error');
-      return;
-    }
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState(new Date());
+  const [calendarMode, setCalendarMode] = useState<'joining' | 'moveout'>('joining');
 
-    const day = parseInt(selectedDay);
-    const month = parseInt(selectedMonth);
-    const year = parseInt(selectedYear);
+  const getDaysInMonth = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
 
-    // Validate date
-    if (day < 1 || day > 31 || month < 1 || month > 12 || year < 1900 || year > 2100) {
-      showCustomAlert('Invalid Date', 'Please enter a valid date.', 'error');
-      return;
-    }
-
-    // Check if date is valid for the month
-    const daysInMonth = new Date(year, month, 0).getDate();
-    if (day > daysInMonth) {
-      showCustomAlert('Invalid Date', `${getMonthName(month)} ${year} has only ${daysInMonth} days.`, 'error');
-      return;
-    }
-
-    const formattedDate = `${day.toString().padStart(2, '0')}-${month.toString().padStart(2, '0')}-${year}`;
-    
-    if (datePickerType === 'moveIn') {
-      setMoveInDate(formattedDate);
-    } else if (datePickerType === 'moveOut') {
-      setMoveOutDate(formattedDate);
-    }
-    
-    setShowDatePicker(false);
-  };
-
-  const getMonthName = (month: number) => {
-    const months = ['January', 'February', 'March', 'April', 'May', 'June',
-                   'July', 'August', 'September', 'October', 'November', 'December'];
-    return months[month - 1];
-  };
-
-  const generateDays = () => {
     const days = [];
-    for (let i = 1; i <= 31; i++) {
-      days.push(i.toString());
+    
+    // Add empty cells for days before the first day of month
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      days.push(null);
     }
+    
+    // Add all days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+      days.push(new Date(year, month, day));
+    }
+    
     return days;
   };
 
-  const generateMonths = () => {
-    const months = [];
-    for (let i = 1; i <= 12; i++) {
-      months.push({ value: i.toString(), label: getMonthName(i) });
-    }
-    return months;
+  const getMonthYear = (date: Date) => {
+    return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   };
 
-  const generateYears = () => {
-    const years = [];
-    const currentYear = new Date().getFullYear();
-    for (let i = currentYear - 5; i <= currentYear + 10; i++) {
-      years.push(i.toString());
+  const handleDateSelect = (date: Date) => {
+    if (calendarMode === 'joining') {
+      setJoiningDate(formatDate(date));
+      setShowJoiningDatePicker(false);
+    } else {
+      setMoveOutDate(formatDate(date));
+      setShowMoveOutDatePicker(false);
     }
-    return years;
   };
 
-  // Currency formatting
-  const formatCurrency = (value: string) => {
-    const number = value.replace(/[^\d]/g, '');
-    if (number.length === 0) return '';
-    
-    const formatted = new Intl.NumberFormat('en-IN').format(parseInt(number));
-    return `₹ ${formatted}`;
+  const handleJoiningDateOpen = () => {
+    setCalendarMode('joining');
+    setSelectedCalendarDate(new Date());
+    setShowJoiningDatePicker(true);
   };
 
-  const handleCurrencyChange = (value: string, setter: (value: string) => void) => {
-    const cleanValue = value.replace(/[^\d]/g, '');
-    setter(cleanValue);
+  const handleMoveOutDateOpen = () => {
+    setCalendarMode('moveout');
+    setSelectedCalendarDate(new Date());
+    setShowMoveOutDatePicker(true);
   };
 
-  // Get available rooms for selected property
-  const getAvailableRooms = () => {
-    if (!selectedProperty) return [];
-    return rooms.filter(room => room.property === selectedProperty.id);
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    const newDate = new Date(selectedCalendarDate);
+    if (direction === 'prev') {
+      newDate.setMonth(newDate.getMonth() - 1);
+    } else {
+      newDate.setMonth(newDate.getMonth() + 1);
+    }
+    setSelectedCalendarDate(newDate);
   };
 
-  const handleSubmit = () => {
-    if (!name.trim()) {
-      showCustomAlert('Missing Information', 'Please enter tenant name.', 'error');
-      return;
-    }
+  const handleNext = () => {
+    setErrorMessage(''); // Clear any previous errors
     
-    if (!phone.trim()) {
-      showCustomAlert('Missing Information', 'Please enter phone number.', 'error');
-      return;
+    if (currentStep === 1) {
+      // Validation for Step 1
+      if (!fullName.trim()) {
+        setErrorMessage('Please enter full name');
+        return;
+      }
+      if (!phoneNumber.trim()) {
+        setErrorMessage('Please enter phone number');
+        return;
+      }
+      
+      setCurrentStep(2);
+      console.log('Moving to step 2');
+    } else if (currentStep === 2) {
+      // Validation for Step 2
+      if (!property) {
+        setErrorMessage('Please select a property');
+        return;
+      }
+      if (!roomNo) {
+        setErrorMessage('Please select a room number');
+        return;
+      }
+      
+      setCurrentStep(3);
+      console.log('Moving to step 3');
+    } else if (currentStep === 3) {
+      // Final submission
+      if (!rentPrice.trim()) {
+        setErrorMessage('Please enter rent price');
+        return;
+      }
+      if (!securityDeposit.trim()) {
+        setErrorMessage('Please enter security deposit');
+        return;
+      }
+      
+      console.log('Submitting tenant data');
+      console.log('Final form data:', {
+        // Step 1 data
+        fullName, gender: gender?.label, profession: profession?.label,
+        phoneNumber, email, permanentAddress, pincode, state: state?.label,
+        // Step 2 data
+        property: property?.label, roomNo: roomNo?.label, joiningDate, moveOutDate,
+        lockInPeriod: lockInPeriod?.label, noticePeriod: noticePeriod?.label,
+        agreementPeriod: agreementPeriod?.label, rentalType: rentalType?.label,
+        // Step 3 data
+        automaticRentReminder, rentPrice, securityDeposit, electricityReading
+      });
+
+      // Show success message
+      setShowSuccessMessage(true);
+      
+      // Close screen after delay
+      setTimeout(() => {
+        setShowSuccessMessage(false);
+        if (onBackPress) {
+          onBackPress();
+        }
+      }, 2000);
     }
-    
-    if (!selectedProperty) {
-      showCustomAlert('Missing Information', 'Please select a property.', 'error');
-      return;
-    }
-    
-    if (!selectedRoom) {
-      showCustomAlert('Missing Information', 'Please select a room.', 'error');
-      return;
-    }
-    
-    showCustomAlert('Success', 'Tenant added successfully!', 'success');
+  };
+
+  // Step indicator component
+  const StepIndicator = () => {
+    return (
+      <View style={styles.stepIndicatorContainer}>
+        {[1, 2, 3].map((step, index) => (
+          <View key={step} style={styles.stepIndicatorRow}>
+            <View
+              style={[
+                styles.stepDot,
+                currentStep >= step ? styles.stepDotActive : styles.stepDotInactive
+              ]}
+            />
+            {index < 2 && (
+              <View
+                style={[
+                  styles.stepLine,
+                  currentStep > step ? styles.stepLineActive : styles.stepLineInactive
+                ]}
+              />
+            )}
+          </View>
+        ))}
+      </View>
+    );
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar backgroundColor="#FED232" barStyle="dark-content" />
       
-      {/* Top Navigation */}
-      <View style={styles.topNavbar}>
+      {/* Header */}
+      <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={onBackPress}>
           <Image
-            source={require('../assets/right-arrow.png')}
-            style={styles.backArrowImage}
+            source={require('../assets/icons/arrow-right.png')}
+            style={styles.backIcon}
           />
         </TouchableOpacity>
-        <Text style={styles.navTitle}>Add Tenant</Text>
+        <Text style={styles.headerTitle}>Add Tenant</Text>
       </View>
 
+      {/* Step Indicator */}
+      <StepIndicator />
+
+      {/* Page Title */}
+      <View style={styles.pageTitleContainer}>
+        <Text style={styles.pageTitle}>
+          {currentStep === 1 ? 'Basic Information' : 
+           currentStep === 2 ? 'Room & Rent Details' : 
+           'Rent & Money Details'}
+        </Text>
+      </View>
+
+      {/* Error Message */}
+      {errorMessage ? (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{errorMessage}</Text>
+        </View>
+      ) : null}
+
       <KeyboardAvoidingView 
-        style={{ flex: 1 }} 
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={0}
+        style={styles.keyboardContainer}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+        enabled={true}
       >
         <ScrollView 
-          ref={scrollViewRef}
-          style={styles.scrollContent}
-          contentContainerStyle={{
-            flexGrow: 1,
-            paddingBottom: 10
-          }}
+          style={styles.content} 
           showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContentContainer}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
-          nestedScrollEnabled={true}
+          automaticallyAdjustKeyboardInsets={true}
+          scrollEventThrottle={16}
+          bounces={false}
         >
-          {/* Container 1: Personal Information */}
-          <View style={styles.sectionContainer}>
+        {currentStep === 1 && (
+          <>
+            {/* Full Name */}
+            <View style={styles.fieldContainer}>
+              <Text style={styles.fieldLabel}>Full Name</Text>
+              <TextInput
+                style={styles.textInput}
+                value={fullName}
+                onChangeText={setFullName}
+                placeholder="Full Name"
+                placeholderTextColor="#9CA3AF"
+              />
+            </View>
+
+            {/* Gender and Profession Row */}
             <View style={styles.fieldRow}>
-              <Text style={styles.fieldLabel}>Name</Text>
-              <View style={styles.fieldInputContainer}>
-                <TextInput
-                  style={styles.fieldInput}
-                  value={name}
-                  onChangeText={setName}
-                  placeholder="Enter name"
-                  placeholderTextColor="#9CA3AF"
-                />
+              <View style={styles.halfFieldContainer}>
+                <Text style={styles.fieldLabel}>Gender</Text>
+                <TouchableOpacity 
+                  style={styles.dropdown}
+                  onPress={() => setShowGenderModal(true)}
+                >
+                  <Text style={[styles.dropdownText, !gender && styles.placeholderText]}>
+                    {gender ? gender.label : 'Select'}
+                  </Text>
+                  <Image
+                    source={require('../assets/dropdown-arrow.png')}
+                    style={styles.dropdownArrow}
+                  />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.halfFieldContainer}>
+                <Text style={styles.fieldLabel}>Profession</Text>
+                <TouchableOpacity 
+                  style={styles.dropdown}
+                  onPress={() => setShowProfessionModal(true)}
+                >
+                  <Text style={[styles.dropdownText, !profession && styles.placeholderText]}>
+                    {profession ? profession.label : 'Select'}
+                  </Text>
+                  <Image
+                    source={require('../assets/dropdown-arrow.png')}
+                    style={styles.dropdownArrow}
+                  />
+                </TouchableOpacity>
               </View>
             </View>
 
-            <View style={styles.fieldRow}>
+            {/* Phone Number */}
+            <View style={styles.fieldContainer}>
               <Text style={styles.fieldLabel}>Phone Number</Text>
-              <View style={styles.fieldInputContainer}>
+              <View style={styles.phoneInputContainer}>
+                <View style={styles.countryCode}>
+                  <Text style={styles.countryCodeText}>+91</Text>
+                </View>
                 <TextInput
-                  style={styles.fieldInput}
-                  value={phone}
-                  onChangeText={setPhone}
-                  placeholder="Enter phone number"
+                  style={styles.phoneInput}
+                  value={phoneNumber}
+                  onChangeText={setPhoneNumber}
+                  placeholder=""
                   placeholderTextColor="#9CA3AF"
                   keyboardType="numeric"
                   maxLength={10}
                 />
-                <TouchableOpacity style={styles.fieldIcon}>
+              </View>
+            </View>
+
+            {/* Email */}
+            <View style={styles.fieldContainer}>
+              <Text style={styles.fieldLabel}>Email</Text>
+              <TextInput
+                style={styles.textInput}
+                value={email}
+                onChangeText={setEmail}
+                placeholder="Tenant Email id"
+                placeholderTextColor="#9CA3AF"
+                keyboardType="email-address"
+              />
+            </View>
+
+            {/* Permanent Address */}
+            <View style={styles.fieldContainer}>
+              <Text style={styles.fieldLabel}>Permanent Address</Text>
+              <TextInput
+                style={[styles.textInput, styles.textInputMultiline]}
+                value={permanentAddress}
+                onChangeText={setPermanentAddress}
+                placeholder="Address Line"
+                placeholderTextColor="#9CA3AF"
+                multiline
+                numberOfLines={3}
+              />
+            </View>
+
+            {/* Pincode and State Row */}
+            <View style={styles.fieldRow}>
+              <View style={styles.halfFieldContainer}>
+                <Text style={styles.fieldLabel}>Pincode</Text>
+                <TextInput
+                  style={styles.textInput}
+                  value={pincode}
+                  onChangeText={setPincode}
+                  placeholder=""
+                  placeholderTextColor="#9CA3AF"
+                  keyboardType="numeric"
+                  maxLength={6}
+                />
+              </View>
+
+              <View style={styles.halfFieldContainer}>
+                <Text style={styles.fieldLabel}>State</Text>
+                <TouchableOpacity 
+                  style={styles.dropdown}
+                  onPress={() => setShowStateModal(true)}
+                >
+                  <Text style={[styles.dropdownText, !state && styles.placeholderText]}>
+                    {state ? state.label : 'Select'}
+                  </Text>
                   <Image
-                    source={require('../assets/icons/user-plus.png')}
-                    style={styles.iconImage}
+                    source={require('../assets/dropdown-arrow.png')}
+                    style={styles.dropdownArrow}
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
+          </>
+        )}
+
+        {currentStep === 2 && (
+          <>
+            {/* Property and Room Row */}
+            <View style={styles.fieldRow}>
+              <View style={styles.halfFieldContainer}>
+                <Text style={styles.fieldLabel}>Property</Text>
+                <TouchableOpacity 
+                  style={styles.dropdown}
+                  onPress={() => setShowPropertyModal(true)}
+                >
+                  <Text style={[styles.dropdownText, !property && styles.placeholderText]}>
+                    {property ? property.label : 'Select'}
+                  </Text>
+                  <Image
+                    source={require('../assets/dropdown-arrow.png')}
+                    style={styles.dropdownArrow}
+                  />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.halfFieldContainer}>
+                <Text style={styles.fieldLabel}>Room No</Text>
+                <TouchableOpacity 
+                  style={styles.dropdown}
+                  onPress={() => setShowRoomModal(true)}
+                >
+                  <Text style={[styles.dropdownText, !roomNo && styles.placeholderText]}>
+                    {roomNo ? roomNo.label : 'Select'}
+                  </Text>
+                  <Image
+                    source={require('../assets/dropdown-arrow.png')}
+                    style={styles.dropdownArrow}
                   />
                 </TouchableOpacity>
               </View>
             </View>
 
+            {/* Joining Date and Move Out Row */}
             <View style={styles.fieldRow}>
-              <Text style={styles.fieldLabel}>Alt. Phone Number</Text>
-              <View style={styles.fieldInputContainer}>
-                <TextInput
-                  style={styles.fieldInput}
-                  value={altPhone}
-                  onChangeText={setAltPhone}
-                  placeholder="Enter alternate number"
-                  placeholderTextColor="#9CA3AF"
-                  keyboardType="numeric"
-                  maxLength={10}
-                />
-                <TouchableOpacity style={styles.fieldIcon}>
+              <View style={styles.halfFieldContainer}>
+                <Text style={styles.fieldLabel}>Joining Date</Text>
+                <TouchableOpacity 
+                  style={styles.dateInput}
+                  onPress={handleJoiningDateOpen}
+                >
+                  <Text style={[styles.dropdownText, !joiningDate && styles.placeholderText]}>
+                    {joiningDate || 'Select'}
+                  </Text>
                   <Image
-                    source={require('../assets/icons/user-plus.png')}
-                    style={styles.iconImage}
+                    source={require('../assets/calendar.png')}
+                    style={styles.calendarIcon}
+                  />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.halfFieldContainer}>
+                <Text style={styles.fieldLabel}>Move - out</Text>
+                <TouchableOpacity 
+                  style={styles.dateInput}
+                  onPress={handleMoveOutDateOpen}
+                >
+                  <Text style={[styles.dropdownText, !moveOutDate && styles.placeholderText]}>
+                    {moveOutDate || 'Select'}
+                  </Text>
+                  <Image
+                    source={require('../assets/calendar.png')}
+                    style={styles.calendarIcon}
                   />
                 </TouchableOpacity>
               </View>
             </View>
-          </View>
 
-          {/* Container 2: Property & Room */}
-          <View style={styles.sectionContainer}>
+            {/* Lock-in Period and Notice Period Row */}
             <View style={styles.fieldRow}>
-              <Text style={styles.fieldLabel}>Property</Text>
-              <TouchableOpacity 
-                style={styles.fieldDropdownContainer}
-                onPress={() => setShowPropertyModal(true)}
-              >
-                <Text style={[styles.fieldDropdownText, !selectedProperty && styles.placeholderText]}>
-                  {selectedProperty ? selectedProperty.name : 'Select property'}
-                </Text>
-                <Image
-                  source={require('../assets/dropdown-arrow.png')}
-                  style={styles.dropdownArrow}
-                />
-              </TouchableOpacity>
+              <View style={styles.halfFieldContainer}>
+                <Text style={styles.fieldLabel}>Lock-in Period</Text>
+                <TouchableOpacity 
+                  style={styles.dropdown}
+                  onPress={() => setShowLockInModal(true)}
+                >
+                  <Text style={[styles.dropdownText, !lockInPeriod && styles.placeholderText]}>
+                    {lockInPeriod ? lockInPeriod.label : 'Select'}
+                  </Text>
+                  <Image
+                    source={require('../assets/dropdown-arrow.png')}
+                    style={styles.dropdownArrow}
+                  />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.halfFieldContainer}>
+                <Text style={styles.fieldLabel}>Notice Period</Text>
+                <TouchableOpacity 
+                  style={styles.dropdown}
+                  onPress={() => setShowNoticeModal(true)}
+                >
+                  <Text style={[styles.dropdownText, !noticePeriod && styles.placeholderText]}>
+                    {noticePeriod ? noticePeriod.label : 'Select'}
+                  </Text>
+                  <Image
+                    source={require('../assets/dropdown-arrow.png')}
+                    style={styles.dropdownArrow}
+                  />
+                </TouchableOpacity>
+              </View>
             </View>
 
-            <View style={styles.fieldRow}>
-              <Text style={styles.fieldLabel}>Room/Flat</Text>
-              <TouchableOpacity 
-                style={styles.fieldDropdownContainer}
-                onPress={() => {
-                  if (selectedProperty) {
-                    setShowRoomModal(true);
-                  } else {
-                    showCustomAlert('Select Property', 'Please select a property first.', 'error');
-                  }
-                }}
-              >
-                <Text style={[styles.fieldDropdownText, !selectedRoom && styles.placeholderText]}>
-                  {selectedRoom ? selectedRoom.name : 'Select room'}
-                </Text>
-                <Image
-                  source={require('../assets/dropdown-arrow.png')}
-                  style={styles.dropdownArrow}
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Container 3: Move In & Move Out Dates */}
-          <View style={styles.sectionContainer}>
-            <View style={styles.fieldRow}>
-              <Text style={styles.fieldLabel}>Move In Date</Text>
-              <TouchableOpacity 
-                style={styles.fieldDropdownContainer}
-                onPress={() => openDatePicker('moveIn')}
-              >
-                <Text style={[styles.fieldDropdownText, !moveInDate && styles.placeholderText]}>
-                  {moveInDate || 'Select date'}
-                </Text>
-                <Image
-                  source={require('../assets/calendar.png')}
-                  style={styles.iconImage}
-                />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.fieldRow}>
-              <Text style={styles.fieldLabel}>Move Out Date</Text>
-              <TouchableOpacity 
-                style={styles.fieldDropdownContainer}
-                onPress={() => openDatePicker('moveOut')}
-              >
-                <Text style={[styles.fieldDropdownText, !moveOutDate && styles.placeholderText]}>
-                  {moveOutDate || 'Select date'}
-                </Text>
-                <Image
-                  source={require('../assets/calendar.png')}
-                  style={styles.iconImage}
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Container 4: Lock In, Notice & Agreement Periods */}
-          <View style={styles.sectionContainer}>
-            <View style={styles.fieldRow}>
-              <Text style={styles.fieldLabel}>Lock In Period</Text>
-              <TouchableOpacity 
-                style={styles.fieldDropdownContainer}
-                onPress={() => setShowLockInModal(true)}
-              >
-                <Text style={[styles.fieldDropdownText, !lockInPeriod && styles.placeholderText]}>
-                  {lockInPeriod ? lockInPeriod.label : 'Select period'}
-                </Text>
-                <Image
-                  source={require('../assets/dropdown-arrow.png')}
-                  style={styles.dropdownArrow}
-                />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.fieldRow}>
-              <Text style={styles.fieldLabel}>Notice Period</Text>
-              <TouchableOpacity 
-                style={styles.fieldDropdownContainer}
-                onPress={() => setShowNoticeModal(true)}
-              >
-                <Text style={[styles.fieldDropdownText, !noticePeriod && styles.placeholderText]}>
-                  {noticePeriod ? noticePeriod.label : 'Select period'}
-                </Text>
-                <Image
-                  source={require('../assets/dropdown-arrow.png')}
-                  style={styles.dropdownArrow}
-                />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.fieldRow}>
+            {/* Agreement Period */}
+            <View style={styles.fieldContainer}>
               <Text style={styles.fieldLabel}>Agreement Period</Text>
               <TouchableOpacity 
-                style={styles.fieldDropdownContainer}
+                style={styles.dropdown}
                 onPress={() => setShowAgreementModal(true)}
               >
-                <Text style={[styles.fieldDropdownText, !agreementPeriod && styles.placeholderText]}>
-                  {agreementPeriod ? agreementPeriod.label : 'Select period'}
+                <Text style={[styles.dropdownText, !agreementPeriod && styles.placeholderText]}>
+                  {agreementPeriod ? agreementPeriod.label : 'Select the agreement Period'}
                 </Text>
                 <Image
                   source={require('../assets/dropdown-arrow.png')}
@@ -523,18 +598,16 @@ export default function AddTenantScreen({ onBackPress }: AddTenantScreenProps) {
                 />
               </TouchableOpacity>
             </View>
-          </View>
 
-          {/* Container 5: Rental Information */}
-          <View style={styles.sectionContainer}>
-            <View style={styles.fieldRow}>
-              <Text style={styles.fieldLabel}>Rental Frequency</Text>
+            {/* Rental Type */}
+            <View style={styles.fieldContainer}>
+              <Text style={styles.fieldLabel}>Rental Type</Text>
               <TouchableOpacity 
-                style={styles.fieldDropdownContainer}
-                onPress={() => setShowRentalFrequencyModal(true)}
+                style={styles.dropdown}
+                onPress={() => setShowRentalTypeModal(true)}
               >
-                <Text style={[styles.fieldDropdownText, !rentalFrequency && styles.placeholderText]}>
-                  {rentalFrequency ? rentalFrequency.label : 'Select frequency'}
+                <Text style={[styles.dropdownText, !rentalType && styles.placeholderText]}>
+                  {rentalType ? rentalType.label : 'Select type'}
                 </Text>
                 <Image
                   source={require('../assets/dropdown-arrow.png')}
@@ -542,153 +615,203 @@ export default function AddTenantScreen({ onBackPress }: AddTenantScreenProps) {
                 />
               </TouchableOpacity>
             </View>
+          </>
+        )}
 
-            <View style={styles.fieldRow}>
-              <Text style={styles.fieldLabel}>Add Rent On</Text>
-              <TouchableOpacity 
-                style={styles.fieldDropdownContainer}
-                onPress={() => {
-                  if (rentalFrequency) {
-                    setShowAddRentOnModal(true);
-                  } else {
-                    showCustomAlert('Select Rental Frequency', 'Please select rental frequency first.', 'error');
-                  }
-                }}
-              >
-                <Text style={[styles.fieldDropdownText, !addRentOn && styles.placeholderText]}>
-                  {addRentOn ? addRentOn.label : 'Select option'}
-                </Text>
-                <Image
-                  source={require('../assets/dropdown-arrow.png')}
-                  style={styles.dropdownArrow}
-                />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.fieldRow}>
-              <Text style={styles.fieldLabel}>Fixed Rent</Text>
-              <View style={styles.fieldInputContainer}>
-                <TextInput
-                  ref={fixedRentRef}
-                  style={styles.fieldInput}
-                  value={fixedRent ? formatCurrency(fixedRent) : ''}
-                  onChangeText={(value) => handleCurrencyChange(value, setFixedRent)}
-                  placeholder="Enter amount"
-                  placeholderTextColor="#9CA3AF"
-                  keyboardType="numeric"
-                  onFocus={() => {
-                    setTimeout(() => {
-                      scrollViewRef.current?.scrollTo({ y: 400, animated: true });
-                    }, 100);
-                  }}
-                />
+        {currentStep === 3 && (
+          <>
+            {/* Automatic Rent Reminder */}
+            <View style={styles.fieldContainer}>
+              <View style={styles.reminderRow}>
+                <Text style={styles.fieldLabel}>Automatic Rent Reminder</Text>
                 <TouchableOpacity 
-                  style={styles.fieldIcon}
-                  onPress={() => fixedRentRef.current?.focus()}
+                  style={[styles.toggle, automaticRentReminder && styles.toggleActive]}
+                  onPress={() => setAutomaticRentReminder(!automaticRentReminder)}
                 >
-                  <Image
-                    source={require('../assets/icons/banknote.png')}
-                    style={styles.iconImage}
-                  />
+                  <View style={[styles.toggleKnob, automaticRentReminder && styles.toggleKnobActive]} />
                 </TouchableOpacity>
               </View>
             </View>
 
-            <View style={styles.fieldRow}>
+            {/* Rent Price */}
+            <View style={styles.fieldContainer}>
+              <Text style={styles.fieldLabel}>Rent Price</Text>
+              <TextInput
+                style={styles.textInput}
+                value={rentPrice}
+                onChangeText={setRentPrice}
+                placeholder="Amount"
+                placeholderTextColor="#9CA3AF"
+                keyboardType="numeric"
+              />
+            </View>
+
+            {/* Security Deposit */}
+            <View style={styles.fieldContainer}>
               <Text style={styles.fieldLabel}>Security Deposit</Text>
-              <View style={styles.fieldInputContainer}>
-                <TextInput
-                  ref={securityDepositRef}
-                  style={styles.fieldInput}
-                  value={securityDeposit ? formatCurrency(securityDeposit) : ''}
-                  onChangeText={(value) => handleCurrencyChange(value, setSecurityDeposit)}
-                  placeholder="Enter amount"
-                  placeholderTextColor="#9CA3AF"
-                  keyboardType="numeric"
-                  onFocus={() => {
-                    setTimeout(() => {
-                      scrollViewRef.current?.scrollTo({ y: 450, animated: true });
-                    }, 100);
-                  }}
-                />
+              <TextInput
+                style={styles.textInput}
+                value={securityDeposit}
+                onChangeText={setSecurityDeposit}
+                placeholder="Deposit Amount"
+                placeholderTextColor="#9CA3AF"
+                keyboardType="numeric"
+              />
+            </View>
+
+            {/* Lock-in Period and Notice Period Row */}
+            <View style={styles.fieldRow}>
+              <View style={styles.halfFieldContainer}>
+                <Text style={styles.fieldLabel}>Lock-in Period</Text>
                 <TouchableOpacity 
-                  style={styles.fieldIcon}
-                  onPress={() => securityDepositRef.current?.focus()}
+                  style={styles.dropdown}
+                  onPress={() => setShowLockInModal(true)}
                 >
+                  <Text style={[styles.dropdownText, !lockInPeriod && styles.placeholderText]}>
+                    {lockInPeriod ? lockInPeriod.label : 'Select'}
+                  </Text>
                   <Image
-                    source={require('../assets/icons/banknote.png')}
-                    style={styles.iconImage}
+                    source={require('../assets/dropdown-arrow.png')}
+                    style={styles.dropdownArrow}
+                  />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.halfFieldContainer}>
+                <Text style={styles.fieldLabel}>Notice Period</Text>
+                <TouchableOpacity 
+                  style={styles.dropdown}
+                  onPress={() => setShowNoticeModal(true)}
+                >
+                  <Text style={[styles.dropdownText, !noticePeriod && styles.placeholderText]}>
+                    {noticePeriod ? noticePeriod.label : 'Select'}
+                  </Text>
+                  <Image
+                    source={require('../assets/dropdown-arrow.png')}
+                    style={styles.dropdownArrow}
                   />
                 </TouchableOpacity>
               </View>
             </View>
-          </View>
 
-          {/* Container 6: Additional Information */}
-          <View style={styles.sectionContainer}>
-            <View style={styles.fieldRow}>
-              <Text style={styles.fieldLabel}>Room Electricity Meter</Text>
-              <View style={styles.fieldInputContainer}>
-                <TextInput
-                  style={styles.fieldInput}
-                  value={roomElectricityMeter}
-                  onChangeText={setRoomElectricityMeter}
-                  placeholder="Enter meter reading"
-                  placeholderTextColor="#9CA3AF"
-                  keyboardType="numeric"
-                  onFocus={() => {
-                    setTimeout(() => {
-                      scrollViewRef.current?.scrollToEnd({ animated: true });
-                    }, 100);
-                  }}
-                />
-              </View>
+            {/* Room Electricity Reading */}
+            <View style={styles.fieldContainer}>
+              <Text style={styles.fieldLabel}>Room Electricity Reading</Text>
+              <TextInput
+                style={styles.textInput}
+                value={electricityReading}
+                onChangeText={setElectricityReading}
+                placeholder="Deposit Amount"
+                placeholderTextColor="#9CA3AF"
+                keyboardType="numeric"
+              />
             </View>
+          </>
+        )}
 
-            <View style={styles.fieldRow}>
-              <Text style={styles.fieldLabel}>Tenant Electricity Meter</Text>
-              <View style={styles.fieldInputContainer}>
-                <TextInput
-                  style={styles.fieldInput}
-                  value={tenantElectricityMeter}
-                  onChangeText={setTenantElectricityMeter}
-                  placeholder="Enter meter reading"
-                  placeholderTextColor="#9CA3AF"
-                  keyboardType="numeric"
-                  onFocus={() => {
-                    setTimeout(() => {
-                      scrollViewRef.current?.scrollToEnd({ animated: true });
-                    }, 100);
-                  }}
-                />
-              </View>
-            </View>
-
-            <View style={styles.fieldRow}>
-              <Text style={styles.fieldLabel}>Booked By</Text>
-              <TouchableOpacity 
-                style={styles.fieldDropdownContainer}
-                onPress={() => setShowBookedByModal(true)}
-              >
-                <Text style={[styles.fieldDropdownText, !bookedBy && styles.placeholderText]}>
-                  {bookedBy ? bookedBy.label : 'Select option'}
-                </Text>
-                <Image
-                  source={require('../assets/dropdown-arrow.png')}
-                  style={styles.dropdownArrow}
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
+        {/* Bottom spacing */}
+        <View style={styles.bottomSpacer} />
         </ScrollView>
-
-        {/* Bottom Button */}
-        <View style={[styles.bottomButtonContainer, isKeyboardVisible && { display: 'none' }]}>
-          <TouchableOpacity style={styles.addTenantButton} onPress={handleSubmit}>
-            <Text style={styles.addTenantButtonText}>Add Tenant</Text>
-          </TouchableOpacity>
-        </View>
       </KeyboardAvoidingView>
+
+      {/* Next Button */}
+      <View style={styles.bottomButtonContainer}>
+        <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
+          <Text style={styles.nextButtonText}>
+            {currentStep === 3 ? 'Add Tenant' : 'Next'}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Gender Modal */}
+      <Modal visible={showGenderModal} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Select Gender</Text>
+            <FlatList
+              data={genderOptions}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.modalOption}
+                  onPress={() => {
+                    setGender(item);
+                    setShowGenderModal(false);
+                  }}
+                >
+                  <Text style={styles.modalOptionText}>{item.label}</Text>
+                </TouchableOpacity>
+              )}
+            />
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => setShowGenderModal(false)}
+            >
+              <Text style={styles.modalCloseText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Profession Modal */}
+      <Modal visible={showProfessionModal} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Select Profession</Text>
+            <FlatList
+              data={professionOptions}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.modalOption}
+                  onPress={() => {
+                    setProfession(item);
+                    setShowProfessionModal(false);
+                  }}
+                >
+                  <Text style={styles.modalOptionText}>{item.label}</Text>
+                </TouchableOpacity>
+              )}
+            />
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => setShowProfessionModal(false)}
+            >
+              <Text style={styles.modalCloseText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* State Modal */}
+      <Modal visible={showStateModal} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Select State</Text>
+            <FlatList
+              data={stateOptions}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.modalOption}
+                  onPress={() => {
+                    setState(item);
+                    setShowStateModal(false);
+                  }}
+                >
+                  <Text style={styles.modalOptionText}>{item.label}</Text>
+                </TouchableOpacity>
+              )}
+            />
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => setShowStateModal(false)}
+            >
+              <Text style={styles.modalCloseText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       {/* Property Modal */}
       <Modal visible={showPropertyModal} transparent animationType="fade">
@@ -696,18 +819,17 @@ export default function AddTenantScreen({ onBackPress }: AddTenantScreenProps) {
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Select Property</Text>
             <FlatList
-              data={properties}
+              data={propertyOptions}
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={styles.modalOption}
                   onPress={() => {
-                    setSelectedProperty(item);
-                    setSelectedRoom(null); // Reset room when property changes
+                    setProperty(item);
                     setShowPropertyModal(false);
                   }}
                 >
-                  <Text style={styles.modalOptionText}>{item.name}</Text>
+                  <Text style={styles.modalOptionText}>{item.label}</Text>
                 </TouchableOpacity>
               )}
             />
@@ -727,17 +849,17 @@ export default function AddTenantScreen({ onBackPress }: AddTenantScreenProps) {
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Select Room</Text>
             <FlatList
-              data={getAvailableRooms()}
+              data={roomOptions}
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={styles.modalOption}
                   onPress={() => {
-                    setSelectedRoom(item);
+                    setRoomNo(item);
                     setShowRoomModal(false);
                   }}
                 >
-                  <Text style={styles.modalOptionText}>{item.name}</Text>
+                  <Text style={styles.modalOptionText}>{item.label}</Text>
                 </TouchableOpacity>
               )}
             />
@@ -751,72 +873,11 @@ export default function AddTenantScreen({ onBackPress }: AddTenantScreenProps) {
         </View>
       </Modal>
 
-      {/* Rental Frequency Modal */}
-      <Modal visible={showRentalFrequencyModal} transparent animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Select Rental Frequency</Text>
-            <FlatList
-              data={rentalFrequencyOptions}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.modalOption}
-                  onPress={() => {
-                    setRentalFrequency(item);
-                    setAddRentOn(null); // Reset add rent on when frequency changes
-                    setShowRentalFrequencyModal(false);
-                  }}
-                >
-                  <Text style={styles.modalOptionText}>{item.label}</Text>
-                </TouchableOpacity>
-              )}
-            />
-            <TouchableOpacity
-              style={styles.modalCloseButton}
-              onPress={() => setShowRentalFrequencyModal(false)}
-            >
-              <Text style={styles.modalCloseText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Add Rent On Modal */}
-      <Modal visible={showAddRentOnModal} transparent animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Add Rent On</Text>
-            <FlatList
-              data={addRentOnOptions}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.modalOption}
-                  onPress={() => {
-                    setAddRentOn(item);
-                    setShowAddRentOnModal(false);
-                  }}
-                >
-                  <Text style={styles.modalOptionText}>{item.label}</Text>
-                </TouchableOpacity>
-              )}
-            />
-            <TouchableOpacity
-              style={styles.modalCloseButton}
-              onPress={() => setShowAddRentOnModal(false)}
-            >
-              <Text style={styles.modalCloseText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Lock In Period Modal */}
+      {/* Lock-in Period Modal */}
       <Modal visible={showLockInModal} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Select Lock In Period</Text>
+            <Text style={styles.modalTitle}>Select Lock-in Period</Text>
             <FlatList
               data={lockInOptions}
               keyExtractor={(item) => item.id}
@@ -848,7 +909,7 @@ export default function AddTenantScreen({ onBackPress }: AddTenantScreenProps) {
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Select Notice Period</Text>
             <FlatList
-              data={noticePeriodOptions}
+              data={noticeOptions}
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
                 <TouchableOpacity
@@ -878,7 +939,7 @@ export default function AddTenantScreen({ onBackPress }: AddTenantScreenProps) {
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Select Agreement Period</Text>
             <FlatList
-              data={agreementPeriodOptions}
+              data={agreementOptions}
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
                 <TouchableOpacity
@@ -902,20 +963,20 @@ export default function AddTenantScreen({ onBackPress }: AddTenantScreenProps) {
         </View>
       </Modal>
 
-      {/* Booked By Modal */}
-      <Modal visible={showBookedByModal} transparent animationType="fade">
+      {/* Rental Type Modal */}
+      <Modal visible={showRentalTypeModal} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Booked By</Text>
+            <Text style={styles.modalTitle}>Select Rental Type</Text>
             <FlatList
-              data={bookedByOptions}
+              data={rentalTypeOptions}
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={styles.modalOption}
                   onPress={() => {
-                    setBookedBy(item);
-                    setShowBookedByModal(false);
+                    setRentalType(item);
+                    setShowRentalTypeModal(false);
                   }}
                 >
                   <Text style={styles.modalOptionText}>{item.label}</Text>
@@ -924,7 +985,7 @@ export default function AddTenantScreen({ onBackPress }: AddTenantScreenProps) {
             />
             <TouchableOpacity
               style={styles.modalCloseButton}
-              onPress={() => setShowBookedByModal(false)}
+              onPress={() => setShowRentalTypeModal(false)}
             >
               <Text style={styles.modalCloseText}>Cancel</Text>
             </TouchableOpacity>
@@ -932,209 +993,151 @@ export default function AddTenantScreen({ onBackPress }: AddTenantScreenProps) {
         </View>
       </Modal>
 
-      {/* Date Picker Modal */}
-      <Modal visible={showDatePicker} transparent animationType="fade">
+      {/* Joining Date Picker Modal */}
+      <Modal visible={showJoiningDatePicker} transparent animationType="fade">
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>
-              Select {datePickerType === 'moveIn' ? 'Move In' : 'Move Out'} Date
-            </Text>
+          <View style={[styles.modalContent, styles.calendarModalContent]}>
+            <Text style={styles.modalTitle}>Select Joining Date</Text>
             
-            {/* Calendar-style Date Picker */}
-            <View style={styles.datePickerContainer}>
-              {/* Day Selector */}
-              <View style={styles.datePickerSection}>
-                <Text style={styles.datePickerLabel}>Day</Text>
-                <ScrollView style={styles.datePickerScroll} showsVerticalScrollIndicator={false}>
-                  {generateDays().map((day) => (
-                    <TouchableOpacity
-                      key={day}
-                      style={[
-                        styles.datePickerOption,
-                        selectedDay === day && styles.selectedDateOption
-                      ]}
-                      onPress={() => setSelectedDay(day)}
-                    >
-                      <Text style={[
-                        styles.datePickerOptionText,
-                        selectedDay === day && styles.selectedDateOptionText
-                      ]}>
-                        {day}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </View>
-
-              {/* Month Selector */}
-              <View style={styles.datePickerSection}>
-                <Text style={styles.datePickerLabel}>Month</Text>
-                <ScrollView style={styles.datePickerScroll} showsVerticalScrollIndicator={false}>
-                  {generateMonths().map((month) => (
-                    <TouchableOpacity
-                      key={month.value}
-                      style={[
-                        styles.datePickerOption,
-                        selectedMonth === month.value && styles.selectedDateOption
-                      ]}
-                      onPress={() => setSelectedMonth(month.value)}
-                    >
-                      <Text style={[
-                        styles.datePickerOptionText,
-                        selectedMonth === month.value && styles.selectedDateOptionText
-                      ]}>
-                        {month.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </View>
-
-              {/* Year Selector */}
-              <View style={styles.datePickerSection}>
-                <Text style={styles.datePickerLabel}>Year</Text>
-                <ScrollView style={styles.datePickerScroll} showsVerticalScrollIndicator={false}>
-                  {generateYears().map((year) => (
-                    <TouchableOpacity
-                      key={year}
-                      style={[
-                        styles.datePickerOption,
-                        selectedYear === year && styles.selectedDateOption
-                      ]}
-                      onPress={() => setSelectedYear(year)}
-                    >
-                      <Text style={[
-                        styles.datePickerOptionText,
-                        selectedYear === year && styles.selectedDateOptionText
-                      ]}>
-                        {year}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </View>
-            </View>
-
-            {/* Selected Date Preview */}
-            <View style={styles.selectedDatePreview}>
-              <Text style={styles.selectedDateText}>
-                Selected: {selectedDay && selectedMonth && selectedYear ? 
-                  `${selectedDay}-${selectedMonth}-${selectedYear}` : 
-                  'No date selected'}
-              </Text>
-            </View>
-
-            {/* Action Buttons */}
-            <View style={styles.datePickerActions}>
-              <TouchableOpacity
-                style={[styles.modalCloseButton, { flex: 1, backgroundColor: '#F3F4F6', marginRight: 10, marginTop: 0 }]}
-                onPress={() => setShowDatePicker(false)}
-              >
-                <Text style={styles.modalCloseText}>Cancel</Text>
+            {/* Month Navigation */}
+            <View style={styles.monthNavigation}>
+              <TouchableOpacity onPress={() => navigateMonth('prev')}>
+                <Text style={styles.navButton}>‹</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modalCloseButton, { flex: 1, backgroundColor: '#FED232', marginTop: 0 }]}
-                onPress={handleDateSelect}
-              >
-                <Text style={[styles.modalCloseText, { color: '#000' }]}>Select</Text>
+              <Text style={styles.monthYear}>{getMonthYear(selectedCalendarDate)}</Text>
+              <TouchableOpacity onPress={() => navigateMonth('next')}>
+                <Text style={styles.navButton}>›</Text>
               </TouchableOpacity>
             </View>
-          </View>
-        </View>
-      </Modal>
 
-      {/* Custom Alert Popup */}
-      <Modal visible={showCustomPopup} transparent animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={[styles.modalTitle, {
-              color: popupType === 'error' ? '#EF4444' : 
-                     popupType === 'success' ? '#10B981' : '#374151'
-            }]}>
-              {popupTitle}
-            </Text>
-            <Text style={{
-              fontSize: 14,
-              fontFamily: 'Montserrat-Regular',
-              color: '#6B7280',
-              textAlign: 'center',
-              marginBottom: 20,
-              lineHeight: 20
-            }}>
-              {popupMessage}
-            </Text>
+            {/* Calendar Grid */}
+            <View style={styles.calendarContainer}>
+              {/* Day Headers */}
+              <View style={styles.dayHeadersRow}>
+                {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
+                  <Text key={day} style={styles.dayHeader}>{day}</Text>
+                ))}
+              </View>
+              
+              {/* Date Grid */}
+              <View style={styles.datesGrid}>
+                {getDaysInMonth(selectedCalendarDate).map((date, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={[
+                      styles.dateCell,
+                      !date && styles.emptyDateCell,
+                      date && date.toDateString() === new Date().toDateString() && styles.todayDateCell
+                    ]}
+                    onPress={date ? () => handleDateSelect(date) : undefined}
+                    disabled={!date}
+                  >
+                    <Text style={[
+                      styles.dateText,
+                      date && date.toDateString() === new Date().toDateString() && styles.todayDateText
+                    ]}>
+                      {date ? date.getDate() : ''}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
             <TouchableOpacity
-              style={[styles.modalCloseButton, {
-                backgroundColor: popupType === 'error' ? '#FEE2E2' :
-                               popupType === 'success' ? '#ECFDF5' : '#F3F4F6'
-              }]}
-              onPress={() => setShowCustomPopup(false)}
+              style={styles.modalCloseButton}
+              onPress={() => setShowJoiningDatePicker(false)}
             >
-              <Text style={[styles.modalCloseText, {
-                color: popupType === 'error' ? '#EF4444' :
-                       popupType === 'success' ? '#10B981' : '#6B7280'
-              }]}>
-                OK
-              </Text>
+              <Text style={styles.modalCloseText}>Cancel</Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
 
-      {/* Input Popup */}
-      <Modal visible={showInputPopup} transparent animationType="fade">
+      {/* Move Out Date Picker Modal */}
+      <Modal visible={showMoveOutDatePicker} transparent animationType="fade">
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>{inputPopupTitle}</Text>
-            <TextInput
-              style={{
-                borderWidth: 1,
-                borderColor: '#DEE1E6',
-                borderRadius: 8,
-                padding: 12,
-                marginBottom: 20,
-                fontSize: 14,
-                fontFamily: 'Montserrat-Regular'
-              }}
-              value={inputPopupValue}
-              onChangeText={setInputPopupValue}
-              placeholder="Enter value"
-              keyboardType="numeric"
-              maxLength={10}
-            />
-            <View style={{ flexDirection: 'row', gap: 10 }}>
-              <TouchableOpacity
-                style={[styles.modalCloseButton, { flex: 1, backgroundColor: '#F3F4F6' }]}
-                onPress={() => setShowInputPopup(false)}
-              >
-                <Text style={styles.modalCloseText}>Cancel</Text>
+          <View style={[styles.modalContent, styles.calendarModalContent]}>
+            <Text style={styles.modalTitle}>Select Move Out Date</Text>
+            
+            {/* Month Navigation */}
+            <View style={styles.monthNavigation}>
+              <TouchableOpacity onPress={() => navigateMonth('prev')}>
+                <Text style={styles.navButton}>‹</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modalCloseButton, { flex: 1, backgroundColor: '#FED232' }]}
-                onPress={() => {
-                  inputPopupCallback(inputPopupValue);
-                  setShowInputPopup(false);
-                  setInputPopupValue('');
-                }}
-              >
-                <Text style={[styles.modalCloseText, { color: '#000' }]}>OK</Text>
+              <Text style={styles.monthYear}>{getMonthYear(selectedCalendarDate)}</Text>
+              <TouchableOpacity onPress={() => navigateMonth('next')}>
+                <Text style={styles.navButton}>›</Text>
               </TouchableOpacity>
             </View>
+
+            {/* Calendar Grid */}
+            <View style={styles.calendarContainer}>
+              {/* Day Headers */}
+              <View style={styles.dayHeadersRow}>
+                {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
+                  <Text key={day} style={styles.dayHeader}>{day}</Text>
+                ))}
+              </View>
+              
+              {/* Date Grid */}
+              <View style={styles.datesGrid}>
+                {getDaysInMonth(selectedCalendarDate).map((date, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={[
+                      styles.dateCell,
+                      !date && styles.emptyDateCell,
+                      date && date.toDateString() === new Date().toDateString() && styles.todayDateCell
+                    ]}
+                    onPress={date ? () => handleDateSelect(date) : undefined}
+                    disabled={!date}
+                  >
+                    <Text style={[
+                      styles.dateText,
+                      date && date.toDateString() === new Date().toDateString() && styles.todayDateText
+                    ]}>
+                      {date ? date.getDate() : ''}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => setShowMoveOutDatePicker(false)}
+            >
+              <Text style={styles.modalCloseText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Success Message Modal */}
+      <Modal visible={showSuccessMessage} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, styles.successModalContent]}>
+            <View style={styles.successIconContainer}>
+              <Text style={styles.successIcon}>✓</Text>
+            </View>
+            <Text style={styles.successTitle}>Success!</Text>
+            <Text style={styles.successMessage}>
+              Tenant has been added successfully
+            </Text>
           </View>
         </View>
       </Modal>
     </SafeAreaView>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F8F9FA',
   },
-  topNavbar: {
+  header: {
     width: '100%',
-    height: Math.max(80, screenHeight * 0.12),
+    height: Math.max(88, screenHeight * 0.11),
     backgroundColor: '#FED232',
     flexDirection: 'row',
     alignItems: 'center',
@@ -1149,12 +1152,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     zIndex: 2,
   },
-  backArrowImage: {
+  backIcon: {
     width: Math.max(20, screenWidth * 0.055),
     height: Math.max(15, screenHeight * 0.025),
     transform: [{ rotate: '180deg' }],
+    tintColor: '#000',
   },
-  navTitle: {
+  headerTitle: {
     flex: 1,
     fontSize: Math.max(16, Math.min(22, screenWidth * 0.045)),
     fontWeight: '600',
@@ -1163,125 +1167,154 @@ const styles = StyleSheet.create({
     marginRight: Math.max(40, screenWidth * 0.1),
     fontFamily: 'Montserrat-SemiBold',
   },
-  scrollContent: {
-    flex: 1,
-    paddingHorizontal: Math.max(15, screenWidth * 0.04),
-    paddingTop: Math.max(10, screenHeight * 0.02),
+  stepIndicatorContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: Math.max(15, screenHeight * 0.018),
+    gap: Math.max(8, screenWidth * 0.02),
   },
-  sectionContainer: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: Math.max(12, screenWidth * 0.03),
-    borderWidth: 1,
-    borderColor: '#DEE1E6',
-    marginBottom: Math.max(12, screenHeight * 0.018),
-    paddingVertical: Math.max(8, screenHeight * 0.015),
-    paddingHorizontal: Math.max(8, screenWidth * 0.02),
-    shadowColor: '#171A1F',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+  stepDot: {
+    width: Math.max(12, screenWidth * 0.03),
+    height: Math.max(12, screenWidth * 0.03),
+    borderRadius: Math.max(6, screenWidth * 0.015),
+  },
+  stepDotActive: {
+    backgroundColor: '#FED232',
+  },
+  stepDotInactive: {
+    backgroundColor: '#D1D5DB',
+  },
+  pageTitleContainer: {
+    paddingHorizontal: Math.max(20, screenWidth * 0.05),
+    paddingBottom: Math.max(12, screenHeight * 0.01),
+  },
+  pageTitle: {
+    fontSize: Math.max(18, screenWidth * 0.045),
+    fontWeight: '600',
+    color: '#111827',
+    fontFamily: 'Montserrat-SemiBold',
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: Math.max(20, screenWidth * 0.05),
+    backgroundColor: '#F8F9FA',
+  },
+  keyboardContainer: {
+    flex: 1,
+    backgroundColor: '#F8F9FA',
+  },
+  scrollContentContainer: {
+    flexGrow: 1,
+    paddingBottom: Math.max(100, screenHeight * 0.12),
+  },
+  fieldContainer: {
+    marginBottom: Math.max(12, screenHeight * 0.015),
   },
   fieldRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: Math.max(8, screenHeight * 0.01),
-    paddingHorizontal: Math.max(8, screenWidth * 0.02),
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#F3F4F6',
-    minHeight: Math.max(50, screenHeight * 0.06),
+    gap: Math.max(12, screenWidth * 0.03),
+    marginBottom: Math.max(12, screenHeight * 0.015),
+  },
+  halfFieldContainer: {
+    flex: 1,
   },
   fieldLabel: {
-    fontSize: Math.max(12, Math.min(16, screenWidth * 0.035)),
+    fontSize: Math.max(14, screenWidth * 0.035),
     fontWeight: '500',
-    color: '#6B7280',
+    color: '#111827',
     fontFamily: 'Montserrat-Medium',
-    width: Math.max(120, screenWidth * 0.32),
-    textAlign: 'left',
-    flexShrink: 0,
+    marginBottom: Math.max(6, screenHeight * 0.008),
   },
-  fieldInputContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 8,
-    backgroundColor: '#FFFFFF',
-    minHeight: Math.max(35, screenHeight * 0.045),
-    paddingHorizontal: 4,
-  },
-  fieldInput: {
-    flex: 1,
-    fontSize: Math.max(12, Math.min(16, screenWidth * 0.032)),
+  textInput: {
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: Math.max(8, screenWidth * 0.02),
+    paddingHorizontal: Math.max(16, screenWidth * 0.04),
+    paddingVertical: Math.max(12, screenHeight * 0.015),
+    fontSize: Math.max(14, screenWidth * 0.035),
     fontFamily: 'Montserrat-Regular',
-    color: '#000000',
-    textAlign: 'right',
-    paddingRight: Math.max(8, screenWidth * 0.015),
-    minHeight: Math.max(30, screenHeight * 0.035),
-    paddingVertical: 0,
-  },
-  fieldDropdownContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    borderRadius: 8,
     backgroundColor: '#FFFFFF',
-    minHeight: Math.max(35, screenHeight * 0.045),
-    paddingHorizontal: 4,
+    color: '#111827',
   },
-  fieldDropdownText: {
-    fontSize: Math.max(12, Math.min(16, screenWidth * 0.032)),
+  textInputMultiline: {
+    height: Math.max(80, screenHeight * 0.1),
+    textAlignVertical: 'top',
+  },
+  dropdown: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: Math.max(8, screenWidth * 0.02),
+    paddingHorizontal: Math.max(16, screenWidth * 0.04),
+    paddingVertical: Math.max(12, screenHeight * 0.015),
+    backgroundColor: '#FFFFFF',
+  },
+  dropdownText: {
+    fontSize: Math.max(14, screenWidth * 0.035),
     fontFamily: 'Montserrat-Regular',
-    color: '#000',
-    textAlign: 'right',
-    paddingRight: Math.max(8, screenWidth * 0.015),
-    flexShrink: 1,
+    color: '#111827',
   },
   placeholderText: {
     color: '#9CA3AF',
   },
-  fieldIcon: {
-    width: Math.max(28, screenWidth * 0.065),
-    height: Math.max(28, screenWidth * 0.065),
+  dropdownArrow: {
+    width: Math.max(16, screenWidth * 0.04),
+    height: Math.max(16, screenWidth * 0.04),
+  },
+  phoneInputContainer: {
+    flexDirection: 'row',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: Math.max(8, screenWidth * 0.02),
+    backgroundColor: '#FFFFFF',
+    overflow: 'hidden',
+  },
+  countryCode: {
+    backgroundColor: '#FED232',
+    paddingHorizontal: Math.max(12, screenWidth * 0.03),
+    paddingVertical: Math.max(12, screenHeight * 0.015),
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 4,
   },
-  iconImage: {
-    width: Math.max(18, screenWidth * 0.04),
-    height: Math.max(18, screenWidth * 0.04),
+  countryCodeText: {
+    fontSize: Math.max(14, screenWidth * 0.035),
+    fontWeight: '600',
+    color: '#111827',
+    fontFamily: 'Montserrat-SemiBold',
   },
-  dropdownArrow: {
-    width: Math.max(14, screenWidth * 0.03),
-    height: Math.max(14, screenWidth * 0.03),
-    marginLeft: Math.max(4, screenWidth * 0.01),
+  phoneInput: {
+    flex: 1,
+    paddingHorizontal: Math.max(16, screenWidth * 0.04),
+    paddingVertical: Math.max(12, screenHeight * 0.015),
+    fontSize: Math.max(14, screenWidth * 0.035),
+    fontFamily: 'Montserrat-Regular',
+    color: '#111827',
+  },
+  bottomSpacer: {
+    height: Math.max(100, screenHeight * 0.12),
   },
   bottomButtonContainer: {
     paddingHorizontal: Math.max(20, screenWidth * 0.05),
-    paddingBottom: Math.max(25, screenHeight * 0.03),
-    paddingTop: Math.max(15, screenHeight * 0.02),
+    paddingVertical: Math.max(20, screenHeight * 0.025),
     backgroundColor: '#F8F9FA',
   },
-  addTenantButton: {
-    width: '100%',
-    height: Math.max(50, screenHeight * 0.065),
-    backgroundColor: '#FEDC15',
-    borderRadius: 35,
-    borderWidth: 1,
-    borderColor: '#EAEAEA',
-    justifyContent: 'center',
+  nextButton: {
+    backgroundColor: '#FED232',
+    borderRadius: Math.max(25, screenWidth * 0.063),
+    paddingVertical: Math.max(15, screenHeight * 0.019),
     alignItems: 'center',
-    alignSelf: 'center',
-    maxWidth: 400,
+    justifyContent: 'center',
+    marginBottom: Math.max(15, screenHeight * 0.02),
   },
-  addTenantButtonText: {
-    fontSize: Math.max(14, Math.min(18, screenWidth * 0.042)),
+  nextButtonText: {
+    fontSize: Math.max(16, screenWidth * 0.04),
     fontWeight: '600',
-    color: '#000',
+    color: '#111827',
     fontFamily: 'Montserrat-SemiBold',
-    textAlign: 'center',
   },
-  // Modal styles
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -1332,64 +1365,203 @@ const styles = StyleSheet.create({
     fontFamily: 'Montserrat-SemiBold',
     color: '#6B7280',
   },
-  // Date picker styles
-  datePickerContainer: {
+  stepIndicatorRow: {
     flexDirection: 'row',
-    height: 200,
-    marginBottom: 20,
-    gap: 10,
-  },
-  datePickerSection: {
-    flex: 1,
-    backgroundColor: '#F8F9FA',
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
-  datePickerLabel: {
-    fontSize: 14,
-    fontFamily: 'Montserrat-SemiBold',
-    color: '#374151',
-    textAlign: 'center',
-    paddingVertical: 10,
-    backgroundColor: '#E5E7EB',
-  },
-  datePickerScroll: {
-    flex: 1,
-  },
-  datePickerOption: {
-    paddingVertical: 12,
-    paddingHorizontal: 8,
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#E5E7EB',
     alignItems: 'center',
   },
-  selectedDateOption: {
+  stepLine: {
+    height: 3,
+    width: Math.max(30, screenWidth * 0.3),
+    marginHorizontal: Math.max(6, screenWidth * 0.015),
+  },
+  stepLineActive: {
     backgroundColor: '#FED232',
   },
-  datePickerOptionText: {
-    fontSize: 14,
-    fontFamily: 'Montserrat-Regular',
-    color: '#374151',
+  stepLineInactive: {
+    backgroundColor: '#D1D5DB',
+  },
+  dateInput: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: Math.max(8, screenWidth * 0.02),
+    paddingHorizontal: Math.max(16, screenWidth * 0.04),
+    paddingVertical: Math.max(12, screenHeight * 0.015),
+    backgroundColor: '#FFFFFF',
+  },
+  calendarIcon: {
+    width: Math.max(16, screenWidth * 0.04),
+    height: Math.max(16, screenWidth * 0.04),
+  },
+  errorContainer: {
+    backgroundColor: '#FEE2E2',
+    borderRadius: Math.max(8, screenWidth * 0.02),
+    paddingHorizontal: Math.max(16, screenWidth * 0.04),
+    paddingVertical: Math.max(12, screenHeight * 0.015),
+    marginHorizontal: Math.max(20, screenWidth * 0.05),
+    marginBottom: Math.max(16, screenHeight * 0.02),
+    borderWidth: 1,
+    borderColor: '#FECACA',
+  },
+  errorText: {
+    fontSize: Math.max(14, screenWidth * 0.035),
+    fontFamily: 'Montserrat-Medium',
+    color: '#DC2626',
     textAlign: 'center',
   },
-  selectedDateOptionText: {
-    color: '#000',
-    fontFamily: 'Montserrat-SemiBold',
-  },
-  selectedDatePreview: {
-    backgroundColor: '#F3F4F6',
-    padding: 15,
-    borderRadius: 8,
-    marginBottom: 15,
+  reminderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
   },
-  selectedDateText: {
-    fontSize: 16,
-    fontFamily: 'Montserrat-SemiBold',
-    color: '#374151',
+  toggle: {
+    width: Math.max(50, screenWidth * 0.12),
+    height: Math.max(28, screenHeight * 0.035),
+    borderRadius: Math.max(14, screenHeight * 0.018),
+    backgroundColor: '#E5E7EB',
+    padding: 3,
+    justifyContent: 'center',
   },
-  datePickerActions: {
+  toggleActive: {
+    backgroundColor: '#FED232',
+  },
+  toggleKnob: {
+    width: Math.max(22, screenHeight * 0.028),
+    height: Math.max(22, screenHeight * 0.028),
+    borderRadius: Math.max(11, screenHeight * 0.014),
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  toggleKnobActive: {
+    alignSelf: 'flex-end',
+  },
+  datePickerContainer: {
+    paddingVertical: Math.max(20, screenHeight * 0.025),
+    alignItems: 'center',
+  },
+  datePickerText: {
+    fontSize: Math.max(16, screenWidth * 0.04),
+    fontFamily: 'Montserrat-Regular',
+    color: '#111827',
+    marginBottom: Math.max(15, screenHeight * 0.02),
+    textAlign: 'center',
+  },
+  datePickerButton: {
+    backgroundColor: '#FED232',
+    borderRadius: Math.max(8, screenWidth * 0.02),
+    paddingHorizontal: Math.max(20, screenWidth * 0.05),
+    paddingVertical: Math.max(12, screenHeight * 0.015),
+  },
+  datePickerButtonText: {
+    fontSize: Math.max(14, screenWidth * 0.035),
+    fontFamily: 'Montserrat-SemiBold',
+    color: '#111827',
+    fontWeight: '600',
+  },
+  successModalContent: {
+    alignItems: 'center',
+    paddingVertical: Math.max(30, screenHeight * 0.04),
+  },
+  successIconContainer: {
+    width: Math.max(60, screenWidth * 0.15),
+    height: Math.max(60, screenWidth * 0.15),
+    borderRadius: Math.max(30, screenWidth * 0.075),
+    backgroundColor: '#10B981',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: Math.max(20, screenHeight * 0.025),
+  },
+  successIcon: {
+    fontSize: Math.max(30, screenWidth * 0.075),
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+  },
+  successTitle: {
+    fontSize: Math.max(20, screenWidth * 0.05),
+    fontFamily: 'Montserrat-SemiBold',
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: Math.max(10, screenHeight * 0.012),
+  },
+  successMessage: {
+    fontSize: Math.max(14, screenWidth * 0.035),
+    fontFamily: 'Montserrat-Regular',
+    color: '#6B7280',
+    textAlign: 'center',
+    lineHeight: Math.max(20, screenHeight * 0.025),
+  },
+  calendarModalContent: {
+    width: Math.min(screenWidth * 0.95, 380),
+    maxWidth: 400,
+  },
+  monthNavigation: {
     flexDirection: 'row',
-    gap: 10,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: Math.max(15, screenHeight * 0.02),
+    paddingHorizontal: Math.max(10, screenWidth * 0.025),
+  },
+  navButton: {
+    fontSize: Math.max(24, screenWidth * 0.06),
+    fontFamily: 'Montserrat-SemiBold',
+    color: '#FED232',
+    paddingHorizontal: Math.max(15, screenWidth * 0.04),
+  },
+  monthYear: {
+    fontSize: Math.max(16, screenWidth * 0.04),
+    fontFamily: 'Montserrat-SemiBold',
+    color: '#111827',
+    fontWeight: '600',
+  },
+  calendarContainer: {
+    paddingHorizontal: Math.max(5, screenWidth * 0.01),
+  },
+  dayHeadersRow: {
+    flexDirection: 'row',
+    paddingVertical: Math.max(10, screenHeight * 0.012),
+  },
+  dayHeader: {
+    flex: 1,
+    fontSize: Math.max(12, screenWidth * 0.03),
+    fontFamily: 'Montserrat-Medium',
+    color: '#6B7280',
+    textAlign: 'center',
+    fontWeight: '500',
+  },
+  datesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  dateCell: {
+    width: '14.28%', // 7 days per week
+    aspectRatio: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: Math.max(4, screenWidth * 0.01),
+  },
+  emptyDateCell: {
+    backgroundColor: 'transparent',
+  },
+  todayDateCell: {
+    backgroundColor: '#FED232',
+  },
+  dateText: {
+    fontSize: Math.max(14, screenWidth * 0.035),
+    fontFamily: 'Montserrat-Regular',
+    color: '#111827',
+  },
+  todayDateText: {
+    color: '#000000',
+    fontFamily: 'Montserrat-SemiBold',
+    fontWeight: '600',
   },
 });
