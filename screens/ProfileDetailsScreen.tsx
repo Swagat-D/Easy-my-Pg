@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import TenantVerificationModal, { VerificationStatus } from './common/TenantVerificationModal';
 import ShiftTenantModal, { TenantData } from './common/ShiftTenantModal';
 import RemoveTenantModal from './common/RemoveTenantModal';
+import DocumentsModal from './common/DocumentsModal';
 import {
   StyleSheet,
   Text,
@@ -72,6 +73,7 @@ export default function ProfileDetailsScreen({
   const [isVerificationModalVisible, setIsVerificationModalVisible] = useState(false);
   const [isShiftModalVisible, setIsShiftModalVisible] = useState(false);
   const [isRemoveModalVisible, setIsRemoveModalVisible] = useState(false);
+  const [isDocumentsModalVisible, setIsDocumentsModalVisible] = useState(false);
 
   const handleRentBook = () => {
     console.log('Rent Book pressed');
@@ -143,6 +145,14 @@ export default function ProfileDetailsScreen({
 
   const handleCloseVerificationModal = () => {
     setIsVerificationModalVisible(false);
+  };
+
+  const handleOpenDocumentsModal = () => {
+    setIsDocumentsModalVisible(true);
+  };
+
+  const handleCloseDocumentsModal = () => {
+    setIsDocumentsModalVisible(false);
   };
 
   const handleRemindTenant = () => {
@@ -278,13 +288,15 @@ export default function ProfileDetailsScreen({
             </View>
             <Text style={styles.statusLabel}>Verification</Text>
           </TouchableOpacity>
-          <View style={styles.statusItem}>
+          <TouchableOpacity style={styles.statusItem} onPress={handleOpenDocumentsModal}>
+            <View>
             <Image
                 source={require('../assets/Documents.png')}
                 style={styles.DocumentIcon}
               />
+              </View>
             <Text style={styles.DocumentsLabel}>Documents</Text>
-          </View>
+          </TouchableOpacity>
           <View style={styles.statusItem}>
             <Image
                 source={require('../assets/details.png')}
@@ -373,6 +385,11 @@ export default function ProfileDetailsScreen({
         visible={isRemoveModalVisible}
         onClose={handleCloseRemoveModal}
         onMoveOut={handleMoveOut}
+        tenantName={completeTenanData.name}
+      />
+      <DocumentsModal
+        visible={isDocumentsModalVisible}
+        onClose={handleCloseDocumentsModal}
         tenantName={completeTenanData.name}
       />
     </SafeAreaView>
