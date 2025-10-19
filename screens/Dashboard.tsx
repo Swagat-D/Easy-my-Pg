@@ -19,6 +19,8 @@ import TenantsScreen from './TenantsScreen';
 import AddPropertyScreen from './AddPropertyScreen';
 import AddTenantScreen from './AddTenantScreen';
 import ProfileDetailsScreen from './ProfileDetailsScreen';
+import EditProfileScreen from './EditProfileScreen';
+import RentalDetailsScreen from './RentalDetailsScreen';
 import TenantBookingViewScreen from './TenantBookingViewScreen';
 import MoneyContainer from './Money/MoneyContainer';
 
@@ -66,7 +68,7 @@ export default function DashboardScreen({
   onPropertyPress
 }: DashboardScreenProps) {
   const [activeTab, setActiveTab] = useState('home');
-  const [currentScreen, setCurrentScreen] = useState<'property' | 'dashboard' | 'tenants' | 'addProperty' | 'money' | 'addTenant' | 'profileDetails' | 'tenantBookingView'>('dashboard');
+  const [currentScreen, setCurrentScreen] = useState<'property' | 'dashboard' | 'tenants' | 'addProperty' | 'money' | 'addTenant' | 'profileDetails' | 'editProfile' | 'rentalDetails' | 'tenantBookingView'>('dashboard');
   const [addTenantSource, setAddTenantSource] = useState<'property' | 'tenants' | 'dashboard'>('tenants');
   const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
   const [searchText, setSearchText] = useState('');
@@ -107,6 +109,24 @@ export default function DashboardScreen({
   const handleBackFromProfile = () => {
     setSelectedTenant(null);
     setCurrentScreen('tenants');
+  };
+
+  const handleEditProfile = (profileData: any) => {
+    console.log('Edit Profile pressed with data:', profileData);
+    setCurrentScreen('editProfile');
+  };
+
+  const handleBackFromEditProfile = () => {
+    setCurrentScreen('profileDetails');
+  };
+
+  const handleRentalDetails = (rentalData: any) => {
+    console.log('Rental Details pressed with data:', rentalData);
+    setCurrentScreen('rentalDetails');
+  };
+
+  const handleBackFromRentalDetails = () => {
+    setCurrentScreen('profileDetails');
   };
 
   const handleTabPress = (tabId: string) => {
@@ -271,13 +291,53 @@ export default function DashboardScreen({
         tenantData={{
           name: selectedTenant.name,
           room: selectedTenant.room,
-          rent: '₹0',
-          deposit: '₹0',
+          rent: '₹15000',
+          deposit: '₹30000',
           doj: selectedTenant.joinedDate || '04 Oct 2025',
           dol: '04 Jul 2026',
           profileImage: selectedTenant.profileImage,
         }}
         onBackPress={handleBackFromProfile}
+        onEditProfile={handleEditProfile}
+        onRentalDetails={handleRentalDetails}
+      />
+    );
+  }
+
+  if (currentScreen === 'editProfile' && selectedTenant) {
+    return (
+      <EditProfileScreen 
+        profileData={{
+          fullName: selectedTenant.name,
+          gender: 'Female',
+          profession: 'Student',
+          phoneNumber: selectedTenant.mobile?.replace('+91', '') || '9876543210',
+          email: 'soumya@example.com',
+          permanentAddress: '123 Main Street, Kalyani Nagar',
+          pincode: '411006',
+          state: 'Maharashtra',
+        }}
+        onBackPress={handleBackFromEditProfile}
+      />
+    );
+  }
+
+  if (currentScreen === 'rentalDetails' && selectedTenant) {
+    return (
+      <RentalDetailsScreen 
+        rentalData={{
+          property: 'Kalyani Nagar',
+          roomNo: selectedTenant.room,
+          joiningDate: '04102025',
+          moveOutDate: '04072026',
+          lockInPeriod: '6 Months',
+          noticePeriod: '30 Days',
+          agreementPeriod: '11 Months',
+          rentalType: 'Monthly',
+          rentPrice: '15000',
+          securityDeposit: '30000',
+        }}
+        onBackPress={handleBackFromRentalDetails}
       />
     );
   }

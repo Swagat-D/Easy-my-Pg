@@ -187,7 +187,7 @@ export default function TenantBookingViewScreen({
           {/* Booking Amount */}
           <View style={styles.detailRow}>
             <Image
-              source={require('../assets/icons/wallet.png')}
+              source={require('../assets/Frame.png')}
               style={styles.detailIcon}
               resizeMode="contain"
             />
@@ -604,6 +604,7 @@ const styles = StyleSheet.create({
     width: screenWidth * 0.044,
     height: screenHeight * 0.01875,
     marginRight: screenWidth * 0.025,
+    tintColor: '#000000',
   },
   detailLabel: {
     color: '#000000',

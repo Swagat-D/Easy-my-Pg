@@ -21,6 +21,8 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 interface ProfileDetailsScreenProps {
   onBackPress?: () => void;
+  onEditProfile?: (profileData: any) => void;
+  onRentalDetails?: (rentalData: any) => void;
   tenantData?: {
     name: string;
     room: string;
@@ -35,6 +37,8 @@ interface ProfileDetailsScreenProps {
 
 export default function ProfileDetailsScreen({ 
   onBackPress,
+  onEditProfile,
+  onRentalDetails,
   tenantData = {
     name: 'Soumya',
     room: '102',
@@ -81,6 +85,18 @@ export default function ProfileDetailsScreen({
 
   const handleEditProfile = () => {
     console.log('Edit Profile pressed');
+    if (onEditProfile) {
+      onEditProfile({
+        fullName: completeTenanData.name,
+        gender: 'Female',
+        profession: 'Student',
+        phoneNumber: completeTenanData.phone?.replace('+91', '') || '9876543210',
+        email: 'soumya@example.com',
+        permanentAddress: '123 Main Street, Kalyani Nagar',
+        pincode: '411006',
+        state: 'Maharashtra',
+      });
+    }
   };
 
   const handleShiftTenant = () => {
@@ -151,12 +167,29 @@ export default function ProfileDetailsScreen({
     setIsDocumentsModalVisible(true);
   };
 
+  const handleOpenRentalDetailsModal = () => {
+    console.log('Rental Details pressed');
+    if (onRentalDetails) {
+      onRentalDetails({
+        property: 'Kalyani Nagar',
+        roomNo: completeTenanData.room || '102',
+        joiningDate: '04102025',
+        moveOutDate: '04072026',
+        lockInPeriod: '6 Months',
+        noticePeriod: '30 Days',
+        agreementPeriod: '11 Months',
+        rentalType: 'Monthly',
+        rentPrice: completeTenanData.rent?.replace('₹', '') || '15000',
+        securityDeposit: completeTenanData.deposit?.replace('₹', '') || '30000',
+      });
+    }
+  };
+
   const handleCloseDocumentsModal = () => {
     setIsDocumentsModalVisible(false);
   };
 
   const handleRemindTenant = () => {
-    // Add your logic for reminding tenant
     setIsVerificationModalVisible(false);
   };
 
@@ -224,7 +257,7 @@ export default function ProfileDetailsScreen({
           <View style={styles.profileInfo}>
             <View style={styles.profileImageContainer}>
               <Image
-                source={require('../assets/profile.png')}
+                source={require('../assets/pht.png')}
                 style={styles.profileImage}
                 resizeMode="cover"
               />
@@ -297,13 +330,15 @@ export default function ProfileDetailsScreen({
               </View>
             <Text style={styles.DocumentsLabel}>Documents</Text>
           </TouchableOpacity>
-          <View style={styles.statusItem}>
+          <TouchableOpacity style={styles.statusItem} onPress={handleOpenRentalDetailsModal}>
+            <View>
             <Image
                 source={require('../assets/details.png')}
                 style={styles.detailsIcon}
               />
+            </View>
             <Text style={styles.statusLabel}>Rental Details</Text>
-          </View>
+          </TouchableOpacity>
         </View>
 
         {/* Tenant Onboarding Flow */}
