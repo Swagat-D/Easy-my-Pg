@@ -1,24 +1,44 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Modal, Dimensions, ScrollView } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  Modal,
+  Dimensions,
+  ScrollView,
+} from 'react-native';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
-interface RemoveTenantModalProps {
-  visible: boolean;
-  onClose: () => void;
-  onMoveOut: (date: Date) => void;
-  tenantName?: string;
+interface TenantBooking {
+  id: string;
+  name: string;
+  profileImage?: string;
+  room: string;
+  bookingAmount: number;
+  bookingDate: string;
+  moveInDate: string;
+  daysLabel: string;
 }
 
-const RemoveTenantModal: React.FC<RemoveTenantModalProps> = ({
+interface MoveInModalProps {
+  visible: boolean;
+  onClose: () => void;
+  tenant: TenantBooking | null;
+  onMoveIn: (date: string) => void;
+  onDeleteBooking: () => void;
+}
+
+export default function MoveInModal({
   visible,
   onClose,
-  onMoveOut,
-  tenantName = 'Tenant',
-}) => {
-  const today = new Date();
-  const [selectedDate, setSelectedDate] = useState<Date | null>(today);
-  const [currentMonth, setCurrentMonth] = useState(new Date(today.getFullYear(), today.getMonth()));
+  tenant,
+  onMoveIn,
+  onDeleteBooking
+}: MoveInModalProps) {
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showMonthDropdown, setShowMonthDropdown] = useState(false);
   const [showYearDropdown, setShowYearDropdown] = useState(false);
   
@@ -30,10 +50,18 @@ const RemoveTenantModal: React.FC<RemoveTenantModalProps> = ({
     'July', 'August', 'September', 'October', 'November', 'December'
   ];
 
-  const weekDays = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+  const weekDays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
   
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 20 }, (_, i) => 2021 + i);
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  };
 
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear();
@@ -41,80 +69,65 @@ const RemoveTenantModal: React.FC<RemoveTenantModalProps> = ({
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
-    
-    let startingDayOfWeek = firstDay.getDay();
-    startingDayOfWeek = startingDayOfWeek === 0 ? 6 : startingDayOfWeek - 1;
+    const startingDayOfWeek = firstDay.getDay();
 
     const days = [];
     
     for (let i = 0; i < startingDayOfWeek; i++) {
-      const prevMonthDate = new Date(year, month, 1 - (startingDayOfWeek - i));
-      days.push({
-        date: prevMonthDate.getDate(),
-        isCurrentMonth: false,
-        fullDate: prevMonthDate,
-      });
+      days.push(null);
     }
-
     for (let day = 1; day <= daysInMonth; day++) {
-      days.push({
-        date: day,
-        isCurrentMonth: true,
-        fullDate: new Date(year, month, day),
-      });
+      days.push(new Date(year, month, day));
     }
-
-    const remainingCells = 42 - days.length; 
-    for (let i = 1; i <= remainingCells; i++) {
-      const nextMonthDate = new Date(year, month + 1, i);
-      days.push({
-        date: nextMonthDate.getDate(),
-        isCurrentMonth: false,
-        fullDate: nextMonthDate,
-      });
-    }
-
+    
     return days;
   };
 
+  const getMonthYear = (date: Date) => {
+    return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  };
+
   const navigateMonth = (direction: 'prev' | 'next') => {
-    setCurrentMonth(prev => {
-      const newMonth = new Date(prev);
-      if (direction === 'prev') {
-        newMonth.setMonth(prev.getMonth() - 1);
-      } else {
-        newMonth.setMonth(prev.getMonth() + 1);
-      }
-      return newMonth;
-    });
+    const newDate = new Date(selectedCalendarDate);
+    if (direction === 'prev') {
+      newDate.setMonth(newDate.getMonth() - 1);
+    } else {
+      newDate.setMonth(newDate.getMonth() + 1);
+    }
+    setSelectedCalendarDate(newDate);
   };
 
   const handleDateSelect = (date: Date) => {
     setSelectedDate(date);
   };
 
-  const handleMoveOut = () => {
+  const handleMoveIn = () => {
     if (selectedDate) {
-      onMoveOut(selectedDate);
+      onMoveIn(formatDate(selectedDate));
       onClose();
     }
   };
 
+  const handleDeleteBooking = () => {
+    onDeleteBooking();
+    onClose();
+  };
+
   const handleMonthSelect = (monthIndex: number) => {
-    const newDate = new Date(currentMonth.getFullYear(), monthIndex, 1);
-    setCurrentMonth(newDate);
+    const newDate = new Date(selectedCalendarDate.getFullYear(), monthIndex, 1);
+    setSelectedCalendarDate(newDate);
     setShowMonthDropdown(false);
   };
 
   const handleYearSelect = (year: number) => {
-    const newDate = new Date(year, currentMonth.getMonth(), 1);
-    setCurrentMonth(newDate);
+    const newDate = new Date(year, selectedCalendarDate.getMonth(), 1);
+    setSelectedCalendarDate(newDate);
     setShowYearDropdown(false);
   };
 
   const scrollToSelectedMonth = () => {
     setTimeout(() => {
-      const selectedIndex = currentMonth.getMonth();
+      const selectedIndex = selectedCalendarDate.getMonth();
       const itemHeight = Math.max(60, screenHeight * 0.075); 
       monthScrollRef.current?.scrollTo({
         y: selectedIndex * itemHeight,
@@ -125,7 +138,7 @@ const RemoveTenantModal: React.FC<RemoveTenantModalProps> = ({
 
   const scrollToSelectedYear = () => {
     setTimeout(() => {
-      const selectedYear = currentMonth.getFullYear();
+      const selectedYear = selectedCalendarDate.getFullYear();
       const selectedIndex = years.indexOf(selectedYear);
       if (selectedIndex >= 0) {
         const itemHeight = Math.max(60, screenHeight * 0.075); 
@@ -149,16 +162,15 @@ const RemoveTenantModal: React.FC<RemoveTenantModalProps> = ({
     }
   }, [showYearDropdown]);
 
-  const isDateSelected = (date: Date) => {
-    if (!selectedDate) return false;
-    return (
-      date.getDate() === selectedDate.getDate() &&
-      date.getMonth() === selectedDate.getMonth() &&
-      date.getFullYear() === selectedDate.getFullYear()
-    );
-  };
+  React.useEffect(() => {
+    if (visible) {
+      const today = new Date();
+      setSelectedCalendarDate(today);
+      setSelectedDate(today);
+    }
+  }, [visible]);
 
-  const days = getDaysInMonth(currentMonth);
+  if (!tenant) return null;
 
   return (
     <Modal
@@ -178,7 +190,7 @@ const RemoveTenantModal: React.FC<RemoveTenantModalProps> = ({
 
           {/* Content */}
           <View style={styles.contentBox}>
-            <Text style={styles.title}>Select Move out date :</Text>
+            <Text style={styles.title}>Select Move In date :</Text>
 
             {/* Month Navigation */}
             <View style={styles.monthNavigation}>
@@ -193,7 +205,7 @@ const RemoveTenantModal: React.FC<RemoveTenantModalProps> = ({
                     setShowYearDropdown(false);
                   }}
                 >
-                  <Text style={styles.monthText}>{months[currentMonth.getMonth()]}</Text>
+                  <Text style={styles.monthText}>{months[selectedCalendarDate.getMonth()]}</Text>
                   <Text style={styles.dropdownArrow}>▼</Text>
                 </TouchableOpacity>
                 <TouchableOpacity 
@@ -203,7 +215,7 @@ const RemoveTenantModal: React.FC<RemoveTenantModalProps> = ({
                     setShowMonthDropdown(false);
                   }}
                 >
-                  <Text style={styles.yearText}>{currentMonth.getFullYear()}</Text>
+                  <Text style={styles.yearText}>{selectedCalendarDate.getFullYear()}</Text>
                   <Text style={styles.dropdownArrow}>▼</Text>
                 </TouchableOpacity>
               </View>
@@ -225,42 +237,41 @@ const RemoveTenantModal: React.FC<RemoveTenantModalProps> = ({
 
               {/* Calendar Days */}
               <View style={styles.datesGrid}>
-                {days.map((dayObj, index) => (
+                {getDaysInMonth(selectedCalendarDate).map((date, index) => (
                   <TouchableOpacity
                     key={index}
                     style={[
                       styles.dateCell,
-                      !dayObj.isCurrentMonth && styles.inactiveDay,
-                      dayObj.isCurrentMonth && styles.dateContainer,
-                      isDateSelected(dayObj.fullDate) && styles.selectedDateContainer,
+                      !date && styles.emptyDateCell,
+                      date && styles.dateContainer,
+                      date && selectedDate && date.toDateString() === selectedDate.toDateString() && styles.selectedDateContainer
                     ]}
-                    onPress={() => dayObj.isCurrentMonth && handleDateSelect(dayObj.fullDate)}
-                    disabled={!dayObj.isCurrentMonth}
+                    onPress={date ? () => handleDateSelect(date) : undefined}
+                    disabled={!date}
                   >
                     <Text
                       style={[
                         styles.dayText,
-                        !dayObj.isCurrentMonth && styles.inactiveDayText,
-                        isDateSelected(dayObj.fullDate) && styles.selectedDayText,
+                        date && selectedDate && date.toDateString() === selectedDate.toDateString() && styles.selectedDayText
                       ]}
                     >
-                      {dayObj.date}
+                      {date ? date.getDate() : ''}
                     </Text>
                   </TouchableOpacity>
                 ))}
               </View>
             </View>
 
-            {/* Move Out Button */}
-            <TouchableOpacity
-              style={[styles.moveOutBtn, !selectedDate && styles.disabledBtn]}
-              onPress={handleMoveOut}
-              disabled={!selectedDate}
-            >
-              <Text style={[styles.moveOutText, !selectedDate && styles.disabledText]}>
-                Move Out
-              </Text>
-            </TouchableOpacity>
+            {/* Action Buttons */}
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity style={styles.deleteButton} onPress={handleDeleteBooking}>
+                <Text style={styles.deleteButtonText}>Delete Booking</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.moveInBtn} onPress={handleMoveIn}>
+                <Text style={styles.moveInText}>Move - In</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </View>
@@ -294,18 +305,18 @@ const RemoveTenantModal: React.FC<RemoveTenantModalProps> = ({
                   key={month}
                   style={[
                     styles.popupItem,
-                    index === currentMonth.getMonth() && styles.selectedPopupItem
+                    index === selectedCalendarDate.getMonth() && styles.selectedPopupItem
                   ]}
                   onPress={() => handleMonthSelect(index)}
                   activeOpacity={0.7}
                 >
                   <Text style={[
                     styles.popupItemText,
-                    index === currentMonth.getMonth() && styles.selectedPopupItemText
+                    index === selectedCalendarDate.getMonth() && styles.selectedPopupItemText
                   ]}>
                     {month}
                   </Text>
-                  {index === currentMonth.getMonth() && (
+                  {index === selectedCalendarDate.getMonth() && (
                     <View style={styles.checkmark}>
                       <Text style={styles.checkmarkText}>✓</Text>
                     </View>
@@ -346,18 +357,18 @@ const RemoveTenantModal: React.FC<RemoveTenantModalProps> = ({
                   key={year}
                   style={[
                     styles.popupItem,
-                    year === currentMonth.getFullYear() && styles.selectedPopupItem
+                    year === selectedCalendarDate.getFullYear() && styles.selectedPopupItem
                   ]}
                   onPress={() => handleYearSelect(year)}
                   activeOpacity={0.7}
                 >
                   <Text style={[
                     styles.popupItemText,
-                    year === currentMonth.getFullYear() && styles.selectedPopupItemText
+                    year === selectedCalendarDate.getFullYear() && styles.selectedPopupItemText
                   ]}>
                     {year}
                   </Text>
-                  {year === currentMonth.getFullYear() && (
+                  {year === selectedCalendarDate.getFullYear() && (
                     <View style={styles.checkmark}>
                       <Text style={styles.checkmarkText}>✓</Text>
                     </View>
@@ -370,7 +381,7 @@ const RemoveTenantModal: React.FC<RemoveTenantModalProps> = ({
       </Modal>
     </Modal>
   );
-};
+}
 
 const styles = StyleSheet.create({
   overlay: {
@@ -482,7 +493,6 @@ const styles = StyleSheet.create({
   daysContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
   },
   datesGrid: {
     flexDirection: 'row',
@@ -496,7 +506,7 @@ const styles = StyleSheet.create({
     marginBottom: Math.max(4, screenHeight * 0.005),
   },
   dateCell: {
-    width: '14.28%', // 7 days per week
+    width: '14.28%',
     aspectRatio: 1,
     justifyContent: 'center',
     alignItems: 'center',
@@ -524,12 +534,8 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  selectedDay: {
-    backgroundColor: '#FED232',
-    borderRadius: Math.max(4, screenWidth * 0.01),
-  },
-  inactiveDay: {
-    opacity: 0.3,
+  emptyDateCell: {
+    backgroundColor: 'transparent',
   },
   dayText: {
     fontSize: Math.max(14, Math.min(16, screenWidth * 0.035)),
@@ -543,7 +549,12 @@ const styles = StyleSheet.create({
   inactiveDayText: {
     color: '#CCC',
   },
-  moveOutBtn: {
+  buttonContainer: {
+    flexDirection: 'row',
+    gap: Math.max(12, screenWidth * 0.03),
+  },
+  deleteButton: {
+    flex: 1,
     backgroundColor: '#FFDEDE',
     borderRadius: Math.max(8, screenWidth * 0.02),
     paddingVertical: Math.max(12, screenHeight * 0.015),
@@ -551,11 +562,27 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#EF1D1D',
   },
-  disabledBtn: {
-    backgroundColor: '#FFB3B3',
-    borderColor: '#FFB3B3',
+  deleteButtonText: {
+    color: '#000000',
+    fontWeight: '600',
+    fontFamily: 'Montserrat-Regular',
+    fontSize: Math.max(14, Math.min(16, screenWidth * 0.035)),
   },
-  moveOutText: {
+  moveInBtn: {
+    flex: 1,
+    backgroundColor: '#FFECA7',
+    borderRadius: Math.max(8, screenWidth * 0.02),
+    paddingVertical: Math.max(12, screenHeight * 0.015),
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#C39901',
+  },
+  disabledBtn: {
+    backgroundColor: '#B3D4FC',
+    borderColor: '#B3D4FC',
+  },
+  moveInText: {
     color: '#000000',
     fontWeight: '600',
     fontFamily: 'Montserrat-Regular',
@@ -599,41 +626,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 0.5,
-  },
-  dropdownContainer: {
-    position: 'relative',
-    zIndex: 1000,
-    marginBottom: Math.max(15, screenHeight * 0.02),
-  },
-  dropdown: {
-    backgroundColor: '#fff',
-    borderRadius: Math.max(8, screenWidth * 0.02),
-    borderWidth: 1,
-    borderColor: '#EAEAEA',
-    maxHeight: Math.max(200, screenHeight * 0.25),
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  dropdownItem: {
-    paddingHorizontal: Math.max(16, screenWidth * 0.04),
-    paddingVertical: Math.max(12, screenHeight * 0.015),
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
-  },
-  selectedDropdownItem: {
-    backgroundColor: '#FED232',
-  },
-  dropdownText: {
-    fontSize: Math.max(14, Math.min(16, screenWidth * 0.035)),
-    color: '#333',
-    fontWeight: '500',
-  },
-  selectedDropdownText: {
-    color: '#000',
-    fontWeight: 'bold',
   },
   popupOverlay: {
     flex: 1,
@@ -730,5 +722,3 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
-
-export default RemoveTenantModal;

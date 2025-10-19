@@ -19,6 +19,7 @@ import TenantsScreen from './TenantsScreen';
 import AddPropertyScreen from './AddPropertyScreen';
 import AddTenantScreen from './AddTenantScreen';
 import ProfileDetailsScreen from './ProfileDetailsScreen';
+import TenantBookingViewScreen from './TenantBookingViewScreen';
 import MoneyContainer from './Money/MoneyContainer';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -65,7 +66,7 @@ export default function DashboardScreen({
   onPropertyPress
 }: DashboardScreenProps) {
   const [activeTab, setActiveTab] = useState('home');
-  const [currentScreen, setCurrentScreen] = useState<'property' | 'dashboard' | 'tenants' | 'addProperty' | 'money' | 'addTenant' | 'profileDetails'>('dashboard');
+  const [currentScreen, setCurrentScreen] = useState<'property' | 'dashboard' | 'tenants' | 'addProperty' | 'money' | 'addTenant' | 'profileDetails' | 'tenantBookingView'>('dashboard');
   const [addTenantSource, setAddTenantSource] = useState<'property' | 'tenants' | 'dashboard'>('tenants');
   const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
   const [searchText, setSearchText] = useState('');
@@ -93,6 +94,14 @@ export default function DashboardScreen({
   const handleTenantProfilePress = (tenant: Tenant) => {
     setSelectedTenant(tenant);
     setCurrentScreen('profileDetails');
+  };
+
+  const handleViewBookingPress = () => {
+    setCurrentScreen('tenantBookingView');
+  };
+
+  const handleBackFromBookingView = () => {
+    setCurrentScreen('tenants');
   };
 
   const handleBackFromProfile = () => {
@@ -134,7 +143,6 @@ export default function DashboardScreen({
     console.log('Support pressed');
   };
 
-  // Conditional rendering after all hooks
   if (currentScreen === 'addProperty') {
     return (
       <AddPropertyScreen 
@@ -216,6 +224,7 @@ export default function DashboardScreen({
           setCurrentScreen('addTenant');
         }}
         onTenantProfilePress={handleTenantProfilePress}
+        onViewBookingPress={handleViewBookingPress}
       />
     );
   }
@@ -269,6 +278,38 @@ export default function DashboardScreen({
           profileImage: selectedTenant.profileImage,
         }}
         onBackPress={handleBackFromProfile}
+      />
+    );
+  }
+
+  if (currentScreen === 'tenantBookingView') {
+    return (
+      <TenantBookingViewScreen 
+        userName={userName}
+        propertyName={propertyName}
+        onBackPress={handleBackFromBookingView}
+        onTabPress={(tabId) => {
+          setActiveTab(tabId);
+          if (tabId === 'property') {
+            setCurrentScreen('property');
+          } else if (tabId === 'home') {
+            setCurrentScreen('dashboard');
+          } else if (tabId === 'tenants') {
+            setCurrentScreen('tenants');
+          } else if (tabId === 'money') {
+            setCurrentScreen('money');
+          } else if (tabId === 'addProperty') {
+            setCurrentScreen('addProperty');
+          }
+        }}
+        onHomePress={() => {
+          setActiveTab('home');
+          setCurrentScreen('dashboard');
+        }}
+        onAddTenantPress={() => {
+          setAddTenantSource('tenants');
+          setCurrentScreen('addTenant');
+        }}
       />
     );
   }

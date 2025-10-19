@@ -1273,8 +1273,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   countryCode: {
-    backgroundColor: '#FED232',
-    paddingHorizontal: Math.max(12, screenWidth * 0.03),
+    backgroundColor: '#FFECA7',
+    paddingHorizontal: Math.max(12, screenWidth * 0.04),
     paddingVertical: Math.max(12, screenHeight * 0.015),
     justifyContent: 'center',
     alignItems: 'center',
