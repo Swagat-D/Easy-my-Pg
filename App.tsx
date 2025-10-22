@@ -1,4 +1,3 @@
-// 1. UPDATE YOUR App.tsx (Replace your existing App.tsx with this enhanced version)
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, Image, Dimensions } from 'react-native';
 import { useEffect, useState } from 'react';

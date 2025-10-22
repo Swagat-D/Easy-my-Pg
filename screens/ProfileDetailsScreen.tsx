@@ -23,6 +23,7 @@ interface ProfileDetailsScreenProps {
   onBackPress?: () => void;
   onEditProfile?: (profileData: any) => void;
   onRentalDetails?: (rentalData: any) => void;
+  onRentBook?: () => void;
   tenantData?: {
     name: string;
     room: string;
@@ -39,6 +40,7 @@ export default function ProfileDetailsScreen({
   onBackPress,
   onEditProfile,
   onRentalDetails,
+  onRentBook,
   tenantData = {
     name: 'Soumya',
     room: '102',
@@ -81,6 +83,9 @@ export default function ProfileDetailsScreen({
 
   const handleRentBook = () => {
     console.log('Rent Book pressed');
+    if (onRentBook) {
+      onRentBook();
+    }
   };
 
   const handleEditProfile = () => {

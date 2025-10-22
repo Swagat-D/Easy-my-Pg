@@ -21,6 +21,7 @@ import AddTenantScreen from './AddTenantScreen';
 import ProfileDetailsScreen from './ProfileDetailsScreen';
 import EditProfileScreen from './EditProfileScreen';
 import RentalDetailsScreen from './RentalDetailsScreen';
+import RentBookScreen from './RentBookScreen';
 import TenantBookingViewScreen from './TenantBookingViewScreen';
 import MoneyContainer from './Money/MoneyContainer';
 
@@ -68,7 +69,7 @@ export default function DashboardScreen({
   onPropertyPress
 }: DashboardScreenProps) {
   const [activeTab, setActiveTab] = useState('home');
-  const [currentScreen, setCurrentScreen] = useState<'property' | 'dashboard' | 'tenants' | 'addProperty' | 'money' | 'addTenant' | 'profileDetails' | 'editProfile' | 'rentalDetails' | 'tenantBookingView'>('dashboard');
+  const [currentScreen, setCurrentScreen] = useState<'property' | 'dashboard' | 'tenants' | 'addProperty' | 'money' | 'addTenant' | 'profileDetails' | 'editProfile' | 'rentalDetails' | 'tenantBookingView' | 'rentBook'>('dashboard');
   const [addTenantSource, setAddTenantSource] = useState<'property' | 'tenants' | 'dashboard'>('tenants');
   const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
   const [searchText, setSearchText] = useState('');
@@ -126,6 +127,15 @@ export default function DashboardScreen({
   };
 
   const handleBackFromRentalDetails = () => {
+    setCurrentScreen('profileDetails');
+  };
+
+  const handleRentBook = () => {
+    console.log('Rent Book pressed');
+    setCurrentScreen('rentBook');
+  };
+
+  const handleBackFromRentBook = () => {
     setCurrentScreen('profileDetails');
   };
 
@@ -300,6 +310,7 @@ export default function DashboardScreen({
         onBackPress={handleBackFromProfile}
         onEditProfile={handleEditProfile}
         onRentalDetails={handleRentalDetails}
+        onRentBook={handleRentBook}
       />
     );
   }
@@ -338,6 +349,14 @@ export default function DashboardScreen({
           securityDeposit: '30000',
         }}
         onBackPress={handleBackFromRentalDetails}
+      />
+    );
+  }
+
+  if (currentScreen === 'rentBook') {
+    return (
+      <RentBookScreen 
+        onBackPress={handleBackFromRentBook}
       />
     );
   }
